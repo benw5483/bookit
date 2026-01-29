@@ -11,14 +11,19 @@ A modern, self-hosted bookmarks manager built with Next.js 15. Designed for pers
 - **Auto-fetch metadata** - URL titles and favicons are automatically retrieved
 - **Custom images** - Upload your own icons or let Bookit fetch favicons automatically
 - **Categories** - Organize bookmarks with color-coded categories
+- **Favorites** - Star important bookmarks and filter to show only favorites
 - **Search** - Quickly filter bookmarks by name, URL, or description
+- **Import/Export** - Backup and restore bookmarks as JSON files
 
 ### Keyboard Shortcuts
 - **Custom key sequences** - Assign shortcuts like `goo` for Google, `gh` for GitHub
 - **Quick access** - Type your shortcut anywhere on the dashboard to instantly open the bookmark
+- **Visual command bar** - See what you're typing and matching bookmarks in real-time
+- **Smart matching** - Arrow keys to navigate matches, Enter to confirm when shortcuts overlap
 - **Visual indicators** - Shortcuts are displayed on each bookmark card
 
 ### Visual Design
+- **Multiple view modes** - Switch between card and list views with persistent preference
 - **Dynamic theming** - Bookmark cards extract colors from favicons for unique gradient backgrounds and borders
 - **Smooth animations** - Framer Motion powers fluid transitions throughout the app
 - **Responsive layout** - Works on desktop and mobile devices

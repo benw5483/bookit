@@ -255,6 +255,7 @@ export default function DashboardPage() {
         exactMatch={shortcutState.exactMatch}
         hasLongerMatches={shortcutState.hasLongerMatches}
         activatedBookmark={shortcutState.activatedBookmark}
+        selectedIndex={shortcutState.selectedIndex}
         potentialMatches={shortcutState.potentialMatches}
       />
     </div>

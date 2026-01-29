@@ -14,6 +14,7 @@ interface ShortcutCommandBarProps {
   exactMatch: BookmarkWithCategory | null;
   hasLongerMatches: boolean;
   activatedBookmark: BookmarkWithCategory | null;
+  selectedIndex: number;
   potentialMatches: BookmarkWithCategory[];
 }
 
@@ -23,6 +24,7 @@ export function ShortcutCommandBar({
   exactMatch,
   hasLongerMatches,
   activatedBookmark,
+  selectedIndex,
   potentialMatches,
 }: ShortcutCommandBarProps) {
   const [mounted, setMounted] = useState(false);
@@ -109,7 +111,13 @@ export function ShortcutCommandBar({
             {/* Exact match ready (with longer alternatives) */}
             {showExactMatchReady && (
               <div className="px-5 pb-3">
-                <div className="flex items-center gap-3 px-3 py-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                <div
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                    selectedIndex === -1
+                      ? "bg-indigo-500/20 border border-indigo-500/40"
+                      : "bg-amber-500/10 border border-amber-500/20"
+                  }`}
+                >
                   {exactMatch.favicon && (
                     <img
                       src={exactMatch.favicon}
@@ -117,12 +125,18 @@ export function ShortcutCommandBar({
                       className="w-5 h-5 object-contain"
                     />
                   )}
-                  <span className="text-sm text-amber-400 font-medium truncate flex-1">
+                  <span
+                    className={`text-sm font-medium truncate flex-1 ${
+                      selectedIndex === -1 ? "text-indigo-300" : "text-amber-400"
+                    }`}
+                  >
                     {exactMatch.name}
                   </span>
-                  <span className="text-xs text-amber-500 bg-amber-500/20 px-2 py-0.5 rounded font-medium shrink-0">
-                    ↵ enter
-                  </span>
+                  {selectedIndex === -1 && (
+                    <span className="text-xs text-indigo-400 bg-indigo-500/20 px-2 py-0.5 rounded font-medium shrink-0">
+                      ↵ enter
+                    </span>
+                  )}
                 </div>
               </div>
             )}
@@ -133,28 +147,50 @@ export function ShortcutCommandBar({
                 <p className="text-xs text-slate-500 px-2 pb-2">
                   {showExactMatchReady ? "Or continue typing..." : "Matching shortcuts"}
                 </p>
-                {potentialMatches.slice(0, 5).map((bookmark) => (
-                  <div
-                    key={bookmark.id}
-                    className="flex items-center gap-3 px-2 py-1.5 rounded-lg text-sm"
-                  >
-                    {bookmark.favicon ? (
-                      <img
-                        src={bookmark.favicon}
-                        alt=""
-                        className="w-4 h-4 object-contain"
-                      />
-                    ) : (
-                      <div className="w-4 h-4 bg-slate-700 rounded" />
-                    )}
-                    <span className="text-slate-400 truncate flex-1">
-                      {bookmark.name}
-                    </span>
-                    <span className="font-mono text-xs text-slate-500 bg-slate-700/50 px-1.5 py-0.5 rounded">
-                      {bookmark.keyboardShortcut}
-                    </span>
-                  </div>
-                ))}
+                {potentialMatches.map((bookmark, index) => {
+                  const isSelected = selectedIndex === index;
+                  return (
+                    <div
+                      key={bookmark.id}
+                      className={`flex items-center gap-3 px-2 py-1.5 rounded-lg text-sm transition-colors ${
+                        isSelected
+                          ? "bg-indigo-500/20 border border-indigo-500/40"
+                          : ""
+                      }`}
+                    >
+                      {bookmark.favicon ? (
+                        <img
+                          src={bookmark.favicon}
+                          alt=""
+                          className="w-4 h-4 object-contain"
+                        />
+                      ) : (
+                        <div className="w-4 h-4 bg-slate-700 rounded" />
+                      )}
+                      <span
+                        className={`truncate flex-1 ${
+                          isSelected ? "text-indigo-300" : "text-slate-400"
+                        }`}
+                      >
+                        {bookmark.name}
+                      </span>
+                      <span
+                        className={`font-mono text-xs px-1.5 py-0.5 rounded ${
+                          isSelected
+                            ? "text-indigo-400 bg-indigo-500/20"
+                            : "text-slate-500 bg-slate-700/50"
+                        }`}
+                      >
+                        {bookmark.keyboardShortcut}
+                      </span>
+                      {isSelected && (
+                        <span className="text-xs text-indigo-400 bg-indigo-500/20 px-2 py-0.5 rounded font-medium shrink-0">
+                          ↵
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
 
@@ -162,13 +198,10 @@ export function ShortcutCommandBar({
             {!activatedBookmark && (
               <div className="px-5 pb-3 pt-1">
                 <p className="text-xs text-slate-500">
+                  <span className="text-slate-400">↑↓</span> navigate •{" "}
+                  <span className="text-slate-400">↵</span> open •{" "}
                   <span className="text-slate-400">⌫</span> delete •{" "}
                   <span className="text-slate-400">esc</span> close
-                  {showExactMatchReady && (
-                    <>
-                      {" "}• <span className="text-slate-400">↵</span> open
-                    </>
-                  )}
                 </p>
               </div>
             )}

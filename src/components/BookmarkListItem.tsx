@@ -49,22 +49,6 @@ export function BookmarkListItem({
       }}
       className="group flex items-center gap-3 px-3 py-2 bg-slate-800/30 hover:bg-slate-800/60 border border-slate-700/30 hover:border-slate-600/50 rounded-lg cursor-pointer transition-all"
     >
-      {/* Star button */}
-      <button
-        onClick={handleStar}
-        className={`shrink-0 transition-all cursor-pointer ${
-          bookmark.starred
-            ? "text-amber-400 hover:text-amber-300"
-            : "text-slate-600 hover:text-amber-400 opacity-0 group-hover:opacity-100"
-        }`}
-      >
-        {bookmark.starred ? (
-          <StarSolidIcon className="w-4 h-4" />
-        ) : (
-          <StarOutlineIcon className="w-4 h-4" />
-        )}
-      </button>
-
       {/* Favicon */}
       <div className="w-5 h-5 flex items-center justify-center shrink-0">
         {imageUrl ? (
@@ -90,6 +74,22 @@ export function BookmarkListItem({
       <span className="flex-1 text-sm text-slate-200 truncate">
         {bookmark.name}
       </span>
+
+      {/* Star button */}
+      <button
+        onClick={handleStar}
+        className={`shrink-0 transition-all cursor-pointer ${
+          bookmark.starred
+            ? "text-amber-400 hover:text-amber-300"
+            : "text-slate-600 hover:text-amber-400 opacity-0 group-hover:opacity-100"
+        }`}
+      >
+        {bookmark.starred ? (
+          <StarSolidIcon className="w-4 h-4" />
+        ) : (
+          <StarOutlineIcon className="w-4 h-4" />
+        )}
+      </button>
 
       {/* Category indicator */}
       {bookmark.category && (

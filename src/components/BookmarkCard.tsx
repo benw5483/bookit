@@ -88,6 +88,25 @@ export function BookmarkCard({
       {/* Overlay for better text readability */}
       <div className="absolute inset-0 bg-slate-900/40" />
 
+      {/* Star button - top right */}
+      <Tooltip content={bookmark.starred ? "Remove from favorites" : "Add to favorites"}>
+        <button
+          onClick={handleStar}
+          className={cn(
+            "absolute top-3 right-3 p-1.5 rounded-lg transition-all cursor-pointer z-10",
+            bookmark.starred
+              ? "text-amber-400 hover:text-amber-300"
+              : "text-slate-400 hover:text-amber-400 opacity-0 group-hover:opacity-100"
+          )}
+        >
+          {bookmark.starred ? (
+            <StarSolidIcon className="w-5 h-5" />
+          ) : (
+            <StarOutlineIcon className="w-5 h-5" />
+          )}
+        </button>
+      </Tooltip>
+
       <div className="relative p-5">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0 overflow-hidden bg-slate-800/60 backdrop-blur-sm">
@@ -149,23 +168,6 @@ export function BookmarkCard({
           </div>
 
           <div className="flex items-center gap-1">
-            <Tooltip content={bookmark.starred ? "Remove from favorites" : "Add to favorites"}>
-              <button
-                onClick={handleStar}
-                className={cn(
-                  "p-2 rounded-lg transition-all cursor-pointer",
-                  bookmark.starred
-                    ? "text-amber-400 hover:text-amber-300"
-                    : "text-slate-300 hover:text-amber-400 opacity-0 group-hover:opacity-100"
-                )}
-              >
-                {bookmark.starred ? (
-                  <StarSolidIcon className="w-4 h-4" />
-                ) : (
-                  <StarOutlineIcon className="w-4 h-4" />
-                )}
-              </button>
-            </Tooltip>
             <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
               <Tooltip content="Open in new tab">
                 <button

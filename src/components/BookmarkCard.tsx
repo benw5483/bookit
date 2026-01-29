@@ -71,7 +71,12 @@ export function BookmarkCard({
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9, pointerEvents: "none", transition: { duration: 0.2 } }}
+      exit={{
+        opacity: 0,
+        scale: 0.9,
+        pointerEvents: "none",
+        transition: { duration: 0.2 },
+      }}
       transition={{
         opacity: { duration: 0.2 },
         scale: { duration: 0.2 },
@@ -79,21 +84,25 @@ export function BookmarkCard({
       }}
       whileHover={{ scale: 1.02, y: -4, transition: { duration: 0.2 } }}
       onClick={handleOpen}
-      className="group relative backdrop-blur-sm rounded-xl border shadow-lg overflow-hidden cursor-pointer"
+      className="group relative backdrop-blur-sm rounded-xl border-2 shadow-lg overflow-hidden cursor-pointer"
       style={{ background: backgroundStyle, borderColor: borderStyle }}
     >
       {/* Overlay for better text readability */}
       <div className="absolute inset-0 bg-slate-900/40" />
 
       {/* Star button - top right */}
-      <Tooltip content={bookmark.starred ? "Remove from favorites" : "Add to favorites"}>
+      <Tooltip
+        content={
+          bookmark.starred ? "Remove from favorites" : "Add to favorites"
+        }
+      >
         <button
           onClick={handleStar}
           className={cn(
             "absolute top-3 right-3 p-1.5 rounded-lg transition-all cursor-pointer z-10",
             bookmark.starred
               ? "text-amber-400 hover:text-amber-300"
-              : "text-slate-400 hover:text-amber-400 opacity-0 group-hover:opacity-100"
+              : "text-slate-400 hover:text-amber-400 opacity-0 group-hover:opacity-100",
           )}
         >
           {bookmark.starred ? (

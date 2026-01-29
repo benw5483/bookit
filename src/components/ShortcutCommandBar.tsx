@@ -58,21 +58,19 @@ export function ShortcutCommandBar({
             className="fixed top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] hidden md:block"
           >
             <div className="bg-slate-800/95 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden w-[25vw] min-w-[400px]">
-            {/* Input display */}
-            <div className="flex items-center gap-3 px-5 py-4">
-              <div className="w-8 h-8 bg-indigo-600/20 rounded-lg flex items-center justify-center shrink-0">
-                {activatedBookmark ? (
-                  <CheckIcon className="w-4 h-4 text-green-400" />
-                ) : (
-                  <CommandLineIcon className="w-4 h-4 text-indigo-400" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1 flex-wrap">
-                  {sequence.split("").map((char, i) => (
+              {/* Input display */}
+              <div className="flex items-center gap-3 px-5 py-4">
+                <div className="w-8 h-8 bg-indigo-600/20 rounded-lg flex items-center justify-center shrink-0">
+                  {activatedBookmark ? (
+                    <CheckIcon className="w-4 h-4 text-green-400" />
+                  ) : (
+                    <CommandLineIcon className="w-4 h-4 text-indigo-400" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1 flex-wrap">
                     <span
-                      key={i}
-                      className={`inline-flex items-center justify-center w-7 h-8 rounded font-mono text-sm font-semibold ${
+                      className={`inline-flex items-center justify-center min-w-7 h-8 rounded font-mono text-sm font-semibold px-2 ${
                         activatedBookmark
                           ? "bg-green-500/20 text-green-400 border border-green-500/30"
                           : showExactMatchReady
@@ -80,15 +78,14 @@ export function ShortcutCommandBar({
                           : "bg-slate-700/50 text-white border border-slate-600/50"
                       }`}
                     >
-                      {char}
+                      {sequence}
                     </span>
-                  ))}
-                  {!activatedBookmark && (
-                    <span className="w-0.5 h-6 bg-indigo-500 animate-pulse ml-1" />
-                  )}
+                    {!activatedBookmark && (
+                      <span className="w-0.5 h-6 bg-indigo-500 animate-pulse ml-1" />
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
 
             {/* Activated bookmark */}
             {activatedBookmark && (

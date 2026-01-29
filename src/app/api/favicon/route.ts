@@ -126,7 +126,7 @@ export async function GET(req: NextRequest) {
       const existingFile = files.find((f) => f.startsWith(hash));
       if (existingFile) {
         console.log("[Favicon API] Found cached favicon:", existingFile);
-        return NextResponse.json({ favicon: `/uploads/favicons/${existingFile}` });
+        return NextResponse.json({ favicon: `/api/uploads/favicons/${existingFile}` });
       }
     } catch {
       // Directory might not exist yet
@@ -162,13 +162,28 @@ export async function GET(req: NextRequest) {
 
     const filename = `${hash}${ext}`;
     const filePath = path.join(FAVICON_DIR, filename);
-    const publicUrl = `/uploads/favicons/${filename}`;
+    const publicUrl = `/api/uploads/favicons/${filename}`;
 
     console.log("[Favicon API] Saving to:", filePath);
 
-    await writeFile(filePath, Buffer.from(faviconResult.data));
+    try {
+      // Ensure directory exists before writing
+      if (!existsSync(FAVICON_DIR)) {
+        console.log("[Favicon API] Creating directory:", FAVICON_DIR);
+        await mkdir(FAVICON_DIR, { recursive: true });
+      }
 
-    console.log("[Favicon API] Saved successfully, returning:", publicUrl);
+      await writeFile(filePath, Buffer.from(faviconResult.data));
+      console.log("[Favicon API] Saved successfully, returning:", publicUrl);
+    } catch (writeError) {
+      console.error("[Favicon API] Failed to save file:", writeError);
+      console.error("[Favicon API] Directory:", FAVICON_DIR);
+      console.error("[Favicon API] File path:", filePath);
+      // Return the favicon data as base64 if we can't save to disk
+      const base64 = Buffer.from(faviconResult.data).toString("base64");
+      const dataUrl = `data:${faviconResult.contentType};base64,${base64}`;
+      return NextResponse.json({ favicon: dataUrl });
+    }
 
     return NextResponse.json({ favicon: publicUrl });
   } catch (error) {

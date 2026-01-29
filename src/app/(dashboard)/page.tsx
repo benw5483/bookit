@@ -7,6 +7,7 @@ import { BookmarkCard } from "@/components/BookmarkCard";
 import { BookmarkForm, BookmarkFormData } from "@/components/BookmarkForm";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { ShortcutCommandBar } from "@/components/ShortcutCommandBar";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import type { Bookmark, Category } from "@/db/schema";
 
@@ -25,7 +26,7 @@ export default function DashboardPage() {
   const [deleting, setDeleting] = useState(false);
 
   // Enable keyboard shortcuts
-  useKeyboardShortcuts(bookmarks);
+  const shortcutState = useKeyboardShortcuts(bookmarks);
 
   const fetchData = useCallback(async () => {
     try {
@@ -246,6 +247,13 @@ export default function DashboardPage() {
         message="Are you sure you want to delete this bookmark? This action cannot be undone."
         confirmText="Delete"
         loading={deleting}
+      />
+
+      <ShortcutCommandBar
+        isOpen={shortcutState.isOpen}
+        sequence={shortcutState.sequence}
+        matchedBookmark={shortcutState.matchedBookmark}
+        potentialMatches={shortcutState.potentialMatches}
       />
     </div>
   );

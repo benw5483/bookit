@@ -1,18 +1,25 @@
 "use client";
 
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useState } from "react";
 import type { Bookmark, Category } from "@/db/schema";
 
 type BookmarkWithCategory = Bookmark & { category: Category | null };
 
-const SEQUENCE_TIMEOUT = 1000; // Reset sequence after 1 second of inactivity
+interface ShortcutState {
+  isOpen: boolean;
+  sequence: string;
+  matchedBookmark: BookmarkWithCategory | null;
+}
 
 export function useKeyboardShortcuts(bookmarks: BookmarkWithCategory[]) {
-  const sequenceRef = useRef("");
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [state, setState] = useState<ShortcutState>({
+    isOpen: false,
+    sequence: "",
+    matchedBookmark: null,
+  });
 
-  const resetSequence = useCallback(() => {
-    sequenceRef.current = "";
+  const close = useCallback(() => {
+    setState({ isOpen: false, sequence: "", matchedBookmark: null });
   }, []);
 
   const handleKeyDown = useCallback(
@@ -27,6 +34,29 @@ export function useKeyboardShortcuts(bookmarks: BookmarkWithCategory[]) {
         return;
       }
 
+      // Handle Escape - close the command bar
+      if (event.key === "Escape") {
+        if (state.isOpen) {
+          event.preventDefault();
+          close();
+        }
+        return;
+      }
+
+      // Handle Backspace - delete last character
+      if (event.key === "Backspace") {
+        if (state.isOpen) {
+          event.preventDefault();
+          const newSequence = state.sequence.slice(0, -1);
+          if (newSequence.length === 0) {
+            close();
+          } else {
+            setState((prev) => ({ ...prev, sequence: newSequence }));
+          }
+        }
+        return;
+      }
+
       // Ignore modifier keys and special keys
       if (
         event.ctrlKey ||
@@ -37,19 +67,13 @@ export function useKeyboardShortcuts(bookmarks: BookmarkWithCategory[]) {
         return;
       }
 
-      // Clear previous timeout
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      event.preventDefault();
 
       // Add the key to the sequence
-      sequenceRef.current += event.key.toLowerCase();
-
-      // Set timeout to reset sequence
-      timeoutRef.current = setTimeout(resetSequence, SEQUENCE_TIMEOUT);
+      const newSequence = state.sequence + event.key.toLowerCase();
 
       // Check if current sequence matches any bookmark shortcut
-      const currentSequence = sequenceRef.current;
+      let matchedBookmark: BookmarkWithCategory | null = null;
 
       for (const bookmark of bookmarks) {
         if (!bookmark.keyboardShortcut) continue;
@@ -57,27 +81,55 @@ export function useKeyboardShortcuts(bookmarks: BookmarkWithCategory[]) {
         const shortcut = bookmark.keyboardShortcut.toLowerCase();
 
         // Exact match - open the bookmark
-        if (shortcut === currentSequence) {
-          event.preventDefault();
-          window.open(bookmark.url, "_blank", "noopener,noreferrer");
-          resetSequence();
-          if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-          }
-          return;
+        if (shortcut === newSequence) {
+          matchedBookmark = bookmark;
+          break;
         }
       }
+
+      if (matchedBookmark) {
+        // Show the match briefly, then open and close
+        setState({ isOpen: true, sequence: newSequence, matchedBookmark });
+
+        // Small delay to show the match, then open URL and close
+        setTimeout(() => {
+          window.open(matchedBookmark!.url, "_blank", "noopener,noreferrer");
+          close();
+        }, 150);
+      } else {
+        // Update state with new sequence
+        setState({
+          isOpen: true,
+          sequence: newSequence,
+          matchedBookmark: null,
+        });
+      }
     },
-    [bookmarks, resetSequence]
+    [bookmarks, state.isOpen, state.sequence, close]
   );
 
   useEffect(() => {
     document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
     };
   }, [handleKeyDown]);
+
+  // Find potential matches (shortcuts that start with current sequence)
+  const potentialMatches = state.sequence
+    ? bookmarks.filter(
+        (b) =>
+          b.keyboardShortcut &&
+          b.keyboardShortcut.toLowerCase().startsWith(state.sequence) &&
+          b.keyboardShortcut.toLowerCase() !== state.sequence
+      )
+    : [];
+
+  return {
+    isOpen: state.isOpen,
+    sequence: state.sequence,
+    matchedBookmark: state.matchedBookmark,
+    potentialMatches,
+    close,
+  };
 }

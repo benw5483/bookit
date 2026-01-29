@@ -44,10 +44,13 @@ export function BookmarkListItem({
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0, pointerEvents: "none" }}
-      transition={{ delay: index * 0.02, duration: 0.15 }}
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8, pointerEvents: "none" }}
+      transition={{
+        duration: 0.2,
+        ease: "easeOut"
+      }}
       onClick={handleOpen}
       onDoubleClick={(e) => {
         e.stopPropagation();

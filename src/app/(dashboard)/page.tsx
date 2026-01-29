@@ -78,8 +78,12 @@ export default function DashboardPage() {
         bookmarksRes.json(),
         categoriesRes.json(),
       ]);
-      setBookmarks(bookmarksData);
-      setCategories(categoriesData);
+      if (Array.isArray(bookmarksData)) {
+        setBookmarks(bookmarksData);
+      }
+      if (Array.isArray(categoriesData)) {
+        setCategories(categoriesData);
+      }
     } catch (error) {
       console.error("Failed to fetch data:", error);
     } finally {

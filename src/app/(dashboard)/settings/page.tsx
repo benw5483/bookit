@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
@@ -28,6 +28,7 @@ export default function SettingsPage() {
     type: "success" | "error";
     text: string;
   } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleExport() {
     window.location.href = "/api/bookmarks/export";
@@ -241,29 +242,23 @@ export default function SettingsPage() {
               <ArrowDownTrayIcon className="w-4 h-4" />
               Export Bookmarks
             </Button>
-            <label>
-              <input
-                type="file"
-                accept=".json"
-                onChange={handleImport}
-                disabled={importLoading}
-                className="hidden"
-              />
-              <Button
-                type="button"
-                variant="secondary"
-                disabled={importLoading}
-                onClick={(e) => {
-                  const input = (e.target as HTMLElement)
-                    .closest("label")
-                    ?.querySelector("input");
-                  input?.click();
-                }}
-              >
-                <ArrowUpTrayIcon className="w-4 h-4" />
-                {importLoading ? "Importing..." : "Import Bookmarks"}
-              </Button>
-            </label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              disabled={importLoading}
+              className="hidden"
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={importLoading}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <ArrowUpTrayIcon className="w-4 h-4" />
+              {importLoading ? "Importing..." : "Import Bookmarks"}
+            </Button>
           </div>
           <p className="mt-3 text-xs text-slate-500">
             Export creates a JSON file with all your bookmarks and categories.

@@ -92,16 +92,34 @@ export default function SettingsPage() {
 
     setLoading(true);
 
-    // Note: Password change endpoint would need to be implemented
-    // This is a placeholder for the UI
-    setMessage({
-      type: "success",
-      text: "Password updated successfully",
-    });
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-    setLoading(false);
+    try {
+      const response = await fetch("/api/auth/password", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to update password");
+      }
+
+      setMessage({
+        type: "success",
+        text: "Password updated successfully",
+      });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      setMessage({
+        type: "error",
+        text: error instanceof Error ? error.message : "Failed to update password",
+      });
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

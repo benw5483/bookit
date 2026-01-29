@@ -9,6 +9,8 @@ import {
   KeyIcon,
   UserIcon,
   InformationCircleIcon,
+  ArrowDownTrayIcon,
+  ArrowUpTrayIcon,
 } from "@heroicons/react/24/outline";
 
 export default function SettingsPage() {
@@ -21,6 +23,54 @@ export default function SettingsPage() {
     type: "success" | "error";
     text: string;
   } | null>(null);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importMessage, setImportMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+
+  async function handleExport() {
+    window.location.href = "/api/bookmarks/export";
+  }
+
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImportLoading(true);
+    setImportMessage(null);
+
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+
+      const response = await fetch("/api/bookmarks/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Import failed");
+      }
+
+      setImportMessage({
+        type: "success",
+        text: `Imported ${result.results.bookmarksCreated} bookmarks and ${result.results.categoriesCreated} categories. Skipped ${result.results.bookmarksSkipped} duplicate bookmarks and ${result.results.categoriesSkipped} existing categories.`,
+      });
+    } catch (error) {
+      setImportMessage({
+        type: "error",
+        text: error instanceof Error ? error.message : "Failed to import",
+      });
+    } finally {
+      setImportLoading(false);
+      // Reset file input
+      e.target.value = "";
+    }
+  }
 
   async function handlePasswordChange(e: React.FormEvent) {
     e.preventDefault();
@@ -158,6 +208,73 @@ export default function SettingsPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
+          className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-6"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-emerald-600/20 rounded-lg flex items-center justify-center">
+              <ArrowDownTrayIcon className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-white">
+                Data Management
+              </h2>
+              <p className="text-sm text-slate-400">
+                Export and import your bookmarks
+              </p>
+            </div>
+          </div>
+
+          {importMessage && (
+            <div
+              className={`mb-4 px-4 py-3 rounded-lg text-sm ${
+                importMessage.type === "success"
+                  ? "bg-green-500/10 border border-green-500/50 text-green-400"
+                  : "bg-red-500/10 border border-red-500/50 text-red-400"
+              }`}
+            >
+              {importMessage.text}
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button onClick={handleExport} variant="secondary">
+              <ArrowDownTrayIcon className="w-4 h-4" />
+              Export Bookmarks
+            </Button>
+            <label>
+              <input
+                type="file"
+                accept=".json"
+                onChange={handleImport}
+                disabled={importLoading}
+                className="hidden"
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={importLoading}
+                onClick={(e) => {
+                  const input = (e.target as HTMLElement)
+                    .closest("label")
+                    ?.querySelector("input");
+                  input?.click();
+                }}
+              >
+                <ArrowUpTrayIcon className="w-4 h-4" />
+                {importLoading ? "Importing..." : "Import Bookmarks"}
+              </Button>
+            </label>
+          </div>
+          <p className="mt-3 text-xs text-slate-500">
+            Export creates a JSON file with all your bookmarks and categories.
+            Import will skip duplicates (matching URLs).
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
           className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-6"
         >
           <div className="flex items-center gap-3 mb-4">

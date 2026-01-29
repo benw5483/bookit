@@ -2,8 +2,14 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PlusIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import {
+  PlusIcon,
+  MagnifyingGlassIcon,
+  Squares2X2Icon,
+  ListBulletIcon,
+} from "@heroicons/react/24/outline";
 import { BookmarkCard } from "@/components/BookmarkCard";
+import { BookmarkListItem } from "@/components/BookmarkListItem";
 import { BookmarkForm, BookmarkFormData } from "@/components/BookmarkForm";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -24,6 +30,21 @@ export default function DashboardPage() {
     useState<BookmarkWithCategory | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [viewType, setViewType] = useState<"cards" | "list">("cards");
+
+  // Load view preference from localStorage
+  useEffect(() => {
+    const savedView = localStorage.getItem("bookit-view-type");
+    if (savedView === "cards" || savedView === "list") {
+      setViewType(savedView);
+    }
+  }, []);
+
+  // Save view preference to localStorage
+  function handleViewChange(view: "cards" | "list") {
+    setViewType(view);
+    localStorage.setItem("bookit-view-type", view);
+  }
 
   // Enable keyboard shortcuts
   const shortcutState = useKeyboardShortcuts(bookmarks);
@@ -147,6 +168,30 @@ export default function DashboardPage() {
             className="w-full pl-12 pr-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
           />
         </div>
+        <div className="flex items-center gap-1 bg-slate-800/50 border border-slate-700/50 rounded-lg p-1">
+          <button
+            onClick={() => handleViewChange("cards")}
+            className={`p-2 rounded-md transition-all cursor-pointer ${
+              viewType === "cards"
+                ? "bg-indigo-600 text-white"
+                : "text-slate-400 hover:text-white hover:bg-slate-700/50"
+            }`}
+            title="Card view"
+          >
+            <Squares2X2Icon className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => handleViewChange("list")}
+            className={`p-2 rounded-md transition-all cursor-pointer ${
+              viewType === "list"
+                ? "bg-indigo-600 text-white"
+                : "text-slate-400 hover:text-white hover:bg-slate-700/50"
+            }`}
+            title="List view"
+          >
+            <ListBulletIcon className="w-5 h-5" />
+          </button>
+        </div>
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => setSelectedCategory(null)}
@@ -215,11 +260,25 @@ export default function DashboardPage() {
             </Button>
           )}
         </motion.div>
-      ) : (
+      ) : viewType === "cards" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence mode="popLayout">
             {filteredBookmarks.map((bookmark, index) => (
               <BookmarkCard
+                key={bookmark.id}
+                bookmark={bookmark}
+                onEdit={handleEdit}
+                onDelete={(id) => setDeleteId(id)}
+                index={index}
+              />
+            ))}
+          </AnimatePresence>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+          <AnimatePresence mode="popLayout">
+            {filteredBookmarks.map((bookmark, index) => (
+              <BookmarkListItem
                 key={bookmark.id}
                 bookmark={bookmark}
                 onEdit={handleEdit}

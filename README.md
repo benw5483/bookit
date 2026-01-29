@@ -2,6 +2,8 @@
 
 A modern, self-hosted bookmarks manager built with Next.js 15. Designed for personal use with a focus on speed, keyboard navigation, and visual appeal.
 
+![Bookit Dashboard](bookit-dashboard.png)
+
 ## Features
 
 ### Bookmark Management

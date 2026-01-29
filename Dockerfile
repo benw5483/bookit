@@ -21,7 +21,7 @@ RUN npm run build
 
 # Stage 3: Production
 FROM node:20-alpine AS runner
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat su-exec
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -35,7 +35,6 @@ COPY --from=builder /app/public ./public
 
 # Create directories for data persistence
 RUN mkdir -p /app/data /app/public/uploads
-RUN chown -R nextjs:nodejs /app/data /app/public/uploads
 
 # Set up standalone output
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
@@ -45,7 +44,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/drizzle.config.ts ./
 COPY --from=builder /app/src/db ./src/db
 
-USER nextjs
+# Copy entrypoint script
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
 EXPOSE 3000
 
@@ -57,4 +58,4 @@ ENV DATABASE_URL="file:/app/data/bookit.db"
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/auth/session || exit 1
 
-CMD ["node", "server.js"]
+ENTRYPOINT ["/docker-entrypoint.sh"]

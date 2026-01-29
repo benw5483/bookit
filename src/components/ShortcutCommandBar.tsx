@@ -39,14 +39,23 @@ export function ShortcutCommandBar({
   return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: 20, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 20, scale: 0.95 }}
-          transition={{ duration: 0.15 }}
-          className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999]"
-        >
-          <div className="bg-slate-800/95 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden w-[calc(100vw-4rem)] sm:w-[400px] md:w-[360px] lg:w-[380px]">
+        <>
+          {/* Backdrop overlay */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] hidden md:block"
+          />
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ duration: 0.15 }}
+            className="fixed top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] hidden md:block"
+          >
+            <div className="bg-slate-800/95 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden w-[25vw] min-w-[400px]">
             {/* Input display */}
             <div className="flex items-center gap-3 px-5 py-4">
               <div className="w-8 h-8 bg-indigo-600/20 rounded-lg flex items-center justify-center shrink-0">
@@ -165,6 +174,7 @@ export function ShortcutCommandBar({
             )}
           </div>
         </motion.div>
+        </>
       )}
     </AnimatePresence>,
     document.body

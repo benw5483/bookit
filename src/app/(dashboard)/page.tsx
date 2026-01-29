@@ -252,7 +252,9 @@ export default function DashboardPage() {
       <ShortcutCommandBar
         isOpen={shortcutState.isOpen}
         sequence={shortcutState.sequence}
-        matchedBookmark={shortcutState.matchedBookmark}
+        exactMatch={shortcutState.exactMatch}
+        hasLongerMatches={shortcutState.hasLongerMatches}
+        activatedBookmark={shortcutState.activatedBookmark}
         potentialMatches={shortcutState.potentialMatches}
       />
     </div>

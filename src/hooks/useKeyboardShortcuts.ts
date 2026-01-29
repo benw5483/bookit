@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState, useRef } from "react";
 import type { Bookmark, Category } from "@/db/schema";
 
 type BookmarkWithCategory = Bookmark & { category: Category | null };
@@ -8,19 +8,48 @@ type BookmarkWithCategory = Bookmark & { category: Category | null };
 interface ShortcutState {
   isOpen: boolean;
   sequence: string;
-  matchedBookmark: BookmarkWithCategory | null;
+  exactMatch: BookmarkWithCategory | null;
+  hasLongerMatches: boolean;
+  activatedBookmark: BookmarkWithCategory | null;
 }
 
 export function useKeyboardShortcuts(bookmarks: BookmarkWithCategory[]) {
   const [state, setState] = useState<ShortcutState>({
     isOpen: false,
     sequence: "",
-    matchedBookmark: null,
+    exactMatch: null,
+    hasLongerMatches: false,
+    activatedBookmark: null,
   });
 
+  const activatingRef = useRef(false);
+
   const close = useCallback(() => {
-    setState({ isOpen: false, sequence: "", matchedBookmark: null });
+    setState({
+      isOpen: false,
+      sequence: "",
+      exactMatch: null,
+      hasLongerMatches: false,
+      activatedBookmark: null,
+    });
   }, []);
+
+  const activateBookmark = useCallback(
+    (bookmark: BookmarkWithCategory) => {
+      if (activatingRef.current) return;
+      activatingRef.current = true;
+
+      setState((prev) => ({ ...prev, activatedBookmark: bookmark }));
+
+      // Small delay to show the activation, then open URL and close
+      setTimeout(() => {
+        window.open(bookmark.url, "_blank", "noopener,noreferrer");
+        close();
+        activatingRef.current = false;
+      }, 150);
+    },
+    [close]
+  );
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -43,6 +72,15 @@ export function useKeyboardShortcuts(bookmarks: BookmarkWithCategory[]) {
         return;
       }
 
+      // Handle Enter - activate exact match if available
+      if (event.key === "Enter") {
+        if (state.isOpen && state.exactMatch && !state.activatedBookmark) {
+          event.preventDefault();
+          activateBookmark(state.exactMatch);
+        }
+        return;
+      }
+
       // Handle Backspace - delete last character
       if (event.key === "Backspace") {
         if (state.isOpen) {
@@ -51,7 +89,27 @@ export function useKeyboardShortcuts(bookmarks: BookmarkWithCategory[]) {
           if (newSequence.length === 0) {
             close();
           } else {
-            setState((prev) => ({ ...prev, sequence: newSequence }));
+            // Recalculate matches for the new sequence
+            const exactMatch = bookmarks.find(
+              (b) =>
+                b.keyboardShortcut &&
+                b.keyboardShortcut.toLowerCase() === newSequence
+            ) || null;
+
+            const hasLongerMatches = bookmarks.some(
+              (b) =>
+                b.keyboardShortcut &&
+                b.keyboardShortcut.toLowerCase().startsWith(newSequence) &&
+                b.keyboardShortcut.toLowerCase() !== newSequence
+            );
+
+            setState((prev) => ({
+              ...prev,
+              sequence: newSequence,
+              exactMatch,
+              hasLongerMatches,
+              activatedBookmark: null,
+            }));
           }
         }
         return;
@@ -67,45 +125,51 @@ export function useKeyboardShortcuts(bookmarks: BookmarkWithCategory[]) {
         return;
       }
 
+      // Don't process if we're currently activating
+      if (state.activatedBookmark) return;
+
       event.preventDefault();
 
       // Add the key to the sequence
       const newSequence = state.sequence + event.key.toLowerCase();
 
-      // Check if current sequence matches any bookmark shortcut
-      let matchedBookmark: BookmarkWithCategory | null = null;
+      // Find exact match
+      const exactMatch = bookmarks.find(
+        (b) =>
+          b.keyboardShortcut &&
+          b.keyboardShortcut.toLowerCase() === newSequence
+      ) || null;
 
-      for (const bookmark of bookmarks) {
-        if (!bookmark.keyboardShortcut) continue;
+      // Check if there are longer shortcuts that start with this sequence
+      const hasLongerMatches = bookmarks.some(
+        (b) =>
+          b.keyboardShortcut &&
+          b.keyboardShortcut.toLowerCase().startsWith(newSequence) &&
+          b.keyboardShortcut.toLowerCase() !== newSequence
+      );
 
-        const shortcut = bookmark.keyboardShortcut.toLowerCase();
-
-        // Exact match - open the bookmark
-        if (shortcut === newSequence) {
-          matchedBookmark = bookmark;
-          break;
-        }
-      }
-
-      if (matchedBookmark) {
-        // Show the match briefly, then open and close
-        setState({ isOpen: true, sequence: newSequence, matchedBookmark });
-
-        // Small delay to show the match, then open URL and close
-        setTimeout(() => {
-          window.open(matchedBookmark!.url, "_blank", "noopener,noreferrer");
-          close();
-        }, 150);
-      } else {
-        // Update state with new sequence
+      // If exact match with no longer matches, auto-activate
+      if (exactMatch && !hasLongerMatches) {
         setState({
           isOpen: true,
           sequence: newSequence,
-          matchedBookmark: null,
+          exactMatch,
+          hasLongerMatches: false,
+          activatedBookmark: null,
+        });
+        activateBookmark(exactMatch);
+      } else {
+        // Update state - user may need to press Enter or continue typing
+        setState({
+          isOpen: true,
+          sequence: newSequence,
+          exactMatch,
+          hasLongerMatches,
+          activatedBookmark: null,
         });
       }
     },
-    [bookmarks, state.isOpen, state.sequence, close]
+    [bookmarks, state.isOpen, state.sequence, state.exactMatch, state.activatedBookmark, close, activateBookmark]
   );
 
   useEffect(() => {
@@ -115,7 +179,7 @@ export function useKeyboardShortcuts(bookmarks: BookmarkWithCategory[]) {
     };
   }, [handleKeyDown]);
 
-  // Find potential matches (shortcuts that start with current sequence)
+  // Find potential matches (shortcuts that start with current sequence but aren't exact)
   const potentialMatches = state.sequence
     ? bookmarks.filter(
         (b) =>
@@ -128,7 +192,9 @@ export function useKeyboardShortcuts(bookmarks: BookmarkWithCategory[]) {
   return {
     isOpen: state.isOpen,
     sequence: state.sequence,
-    matchedBookmark: state.matchedBookmark,
+    exactMatch: state.exactMatch,
+    hasLongerMatches: state.hasLongerMatches,
+    activatedBookmark: state.activatedBookmark,
     potentialMatches,
     close,
   };

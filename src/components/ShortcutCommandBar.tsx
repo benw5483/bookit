@@ -11,14 +11,18 @@ type BookmarkWithCategory = Bookmark & { category: Category | null };
 interface ShortcutCommandBarProps {
   isOpen: boolean;
   sequence: string;
-  matchedBookmark: BookmarkWithCategory | null;
+  exactMatch: BookmarkWithCategory | null;
+  hasLongerMatches: boolean;
+  activatedBookmark: BookmarkWithCategory | null;
   potentialMatches: BookmarkWithCategory[];
 }
 
 export function ShortcutCommandBar({
   isOpen,
   sequence,
-  matchedBookmark,
+  exactMatch,
+  hasLongerMatches,
+  activatedBookmark,
   potentialMatches,
 }: ShortcutCommandBarProps) {
   const [mounted, setMounted] = useState(false);
@@ -29,6 +33,8 @@ export function ShortcutCommandBar({
   }, []);
 
   if (!mounted) return null;
+
+  const showExactMatchReady = exactMatch && hasLongerMatches && !activatedBookmark;
 
   return createPortal(
     <AnimatePresence>
@@ -43,57 +49,80 @@ export function ShortcutCommandBar({
           <div className="bg-slate-800/95 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden w-[calc(100vw-4rem)] sm:w-[400px] md:w-[360px] lg:w-[380px]">
             {/* Input display */}
             <div className="flex items-center gap-3 px-5 py-4">
-              <div className="w-8 h-8 bg-indigo-600/20 rounded-lg flex items-center justify-center">
-                {matchedBookmark ? (
+              <div className="w-8 h-8 bg-indigo-600/20 rounded-lg flex items-center justify-center shrink-0">
+                {activatedBookmark ? (
                   <CheckIcon className="w-4 h-4 text-green-400" />
                 ) : (
                   <CommandLineIcon className="w-4 h-4 text-indigo-400" />
                 )}
               </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-1">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1 flex-wrap">
                   {sequence.split("").map((char, i) => (
                     <span
                       key={i}
                       className={`inline-flex items-center justify-center w-7 h-8 rounded font-mono text-sm font-semibold ${
-                        matchedBookmark
+                        activatedBookmark
                           ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                          : showExactMatchReady
+                          ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
                           : "bg-slate-700/50 text-white border border-slate-600/50"
                       }`}
                     >
                       {char}
                     </span>
                   ))}
-                  {!matchedBookmark && (
+                  {!activatedBookmark && (
                     <span className="w-0.5 h-6 bg-indigo-500 animate-pulse ml-1" />
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Matched bookmark */}
-            {matchedBookmark && (
+            {/* Activated bookmark */}
+            {activatedBookmark && (
               <div className="px-5 pb-4">
                 <div className="flex items-center gap-3 px-3 py-2 bg-green-500/10 border border-green-500/20 rounded-lg">
-                  {matchedBookmark.favicon && (
+                  {activatedBookmark.favicon && (
                     <img
-                      src={matchedBookmark.favicon}
+                      src={activatedBookmark.favicon}
                       alt=""
                       className="w-5 h-5 object-contain"
                     />
                   )}
-                  <span className="text-sm text-green-400 font-medium">
-                    Opening {matchedBookmark.name}...
+                  <span className="text-sm text-green-400 font-medium truncate">
+                    Opening {activatedBookmark.name}...
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Exact match ready (with longer alternatives) */}
+            {showExactMatchReady && (
+              <div className="px-5 pb-3">
+                <div className="flex items-center gap-3 px-3 py-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                  {exactMatch.favicon && (
+                    <img
+                      src={exactMatch.favicon}
+                      alt=""
+                      className="w-5 h-5 object-contain"
+                    />
+                  )}
+                  <span className="text-sm text-amber-400 font-medium truncate flex-1">
+                    {exactMatch.name}
+                  </span>
+                  <span className="text-xs text-amber-500 bg-amber-500/20 px-2 py-0.5 rounded font-medium shrink-0">
+                    ↵ enter
                   </span>
                 </div>
               </div>
             )}
 
             {/* Potential matches */}
-            {!matchedBookmark && potentialMatches.length > 0 && (
+            {!activatedBookmark && potentialMatches.length > 0 && (
               <div className="border-t border-slate-700/50 px-3 py-2 max-h-48 overflow-auto">
                 <p className="text-xs text-slate-500 px-2 pb-2">
-                  Matching shortcuts
+                  {showExactMatchReady ? "Or continue typing..." : "Matching shortcuts"}
                 </p>
                 {potentialMatches.slice(0, 5).map((bookmark) => (
                   <div
@@ -121,11 +150,16 @@ export function ShortcutCommandBar({
             )}
 
             {/* Help text */}
-            {!matchedBookmark && (
+            {!activatedBookmark && (
               <div className="px-5 pb-3 pt-1">
                 <p className="text-xs text-slate-500">
                   <span className="text-slate-400">⌫</span> delete •{" "}
                   <span className="text-slate-400">esc</span> close
+                  {showExactMatchReady && (
+                    <>
+                      {" "}• <span className="text-slate-400">↵</span> open
+                    </>
+                  )}
                 </p>
               </div>
             )}

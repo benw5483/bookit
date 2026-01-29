@@ -3,7 +3,6 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import Database from "better-sqlite3";
 import * as schema from "./schema";
 import { users } from "./schema";
-import { eq } from "drizzle-orm";
 import { existsSync, mkdirSync } from "fs";
 import { dirname, join } from "path";
 import bcrypt from "bcryptjs";
@@ -44,21 +43,20 @@ async function main() {
     console.log("[Migrate] No migrations folder found");
   }
 
-  // Seed initial user if not exists
+  // Seed initial user ONLY if no users exist at all
+  // This prevents overwriting password changes on container restarts
   const username = process.env.INITIAL_USERNAME || process.env.ADMIN_USERNAME;
   const password = process.env.INITIAL_PASSWORD || process.env.ADMIN_PASSWORD;
 
   if (username && password) {
-    const existingUser = await db.query.users.findFirst({
-      where: eq(users.username, username),
-    });
+    const allUsers = await db.query.users.findMany();
 
-    if (!existingUser) {
+    if (allUsers.length === 0) {
       const passwordHash = await bcrypt.hash(password, 12);
       await db.insert(users).values({ username, passwordHash });
       console.log(`[Migrate] Initial user "${username}" created`);
     } else {
-      console.log(`[Migrate] User "${username}" already exists`);
+      console.log(`[Migrate] Users already exist, skipping seed`);
     }
   }
 

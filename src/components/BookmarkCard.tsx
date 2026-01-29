@@ -69,13 +69,10 @@ export function BookmarkCard({
 
   return (
     <motion.div
-      layout
-      layoutId={`bookmark-${bookmark.id}`}
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9, pointerEvents: "none", transition: { duration: 0.2 } }}
       transition={{
-        layout: { type: "spring", stiffness: 300, damping: 30 },
         opacity: { duration: 0.2 },
         scale: { duration: 0.2 },
         delay: index * 0.03,

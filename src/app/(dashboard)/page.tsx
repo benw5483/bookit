@@ -303,7 +303,7 @@ export default function DashboardPage() {
         </motion.div>
       ) : viewType === "cards" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence>
             {filteredBookmarks.map((bookmark, index) => (
               <BookmarkCard
                 key={bookmark.id}
@@ -318,7 +318,7 @@ export default function DashboardPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence>
             {filteredBookmarks.map((bookmark, index) => (
               <BookmarkListItem
                 key={bookmark.id}

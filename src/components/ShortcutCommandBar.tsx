@@ -40,7 +40,7 @@ export function ShortcutCommandBar({
           transition={{ duration: 0.15 }}
           className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999]"
         >
-          <div className="bg-slate-800/95 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden min-w-[300px]">
+          <div className="bg-slate-800/95 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden w-[calc(100vw-4rem)] sm:w-[400px] md:w-[360px] lg:w-[380px]">
             {/* Input display */}
             <div className="flex items-center gap-3 px-5 py-4">
               <div className="w-8 h-8 bg-indigo-600/20 rounded-lg flex items-center justify-center">

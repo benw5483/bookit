@@ -9,6 +9,7 @@ interface TooltipProps {
   children: ReactNode;
   position?: "top" | "bottom" | "left" | "right";
   delay?: number;
+  disabled?: boolean;
 }
 
 export function Tooltip({
@@ -16,6 +17,7 @@ export function Tooltip({
   children,
   position = "top",
   delay = 300,
+  disabled = false,
 }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [coords, setCoords] = useState({ x: 0, y: 0 });
@@ -62,6 +64,7 @@ export function Tooltip({
   }, [position]);
 
   function handleMouseEnter() {
+    if (disabled) return;
     timeoutRef.current = setTimeout(() => {
       setIsVisible(true);
     }, delay);

@@ -53,7 +53,7 @@ A modern, self-hosted bookmarks manager built with Next.js 15. Designed for pers
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/bookit.git
+   git clone https://github.com/OWNER/REPO.git
    cd bookit
    ```
 
@@ -89,6 +89,8 @@ A modern, self-hosted bookmarks manager built with Next.js 15. Designed for pers
 7. Open [http://localhost:3000](http://localhost:3000) and log in with your credentials.
 
 ## Docker Deployment
+
+For detailed Unraid deployment instructions, see **[UNRAID.md](UNRAID.md)**.
 
 ### Using Docker Compose
 

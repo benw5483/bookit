@@ -40,9 +40,9 @@ RUN mkdir -p /app/data /app/public/uploads
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy drizzle config and migrations for runtime
-COPY --from=builder /app/drizzle.config.ts ./
-COPY --from=builder /app/src/db ./src/db
+# Copy migrations and migrate script
+COPY --from=builder /app/src/db/migrations ./src/db/migrations
+COPY --from=builder /app/dist/migrate.js ./dist/migrate.js
 
 # Copy entrypoint script
 COPY docker-entrypoint.sh /docker-entrypoint.sh

@@ -4,14 +4,16 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && npm run build:migrate",
+    "build:migrate": "npx esbuild src/db/migrate.ts --bundle --platform=node --outfile=dist/migrate.js --external:better-sqlite3",
     "start": "next start",
     "lint": "next lint",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "tsx src/db/seed.ts"
+    "db:seed": "tsx src/db/seed.ts",
+    "migrate": "node dist/migrate.js"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -35,6 +37,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "drizzle-kit": "^0.30.0",
+    "esbuild": "^0.24.0",
     "eslint": "^9.17.0",
     "eslint-config-next": "^15.1.0",
     "tailwindcss": "^4.0.0",

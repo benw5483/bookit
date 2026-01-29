@@ -121,7 +121,6 @@ export function Tooltip({
     <>
       <div
         ref={triggerRef}
-        className="inline-flex"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >

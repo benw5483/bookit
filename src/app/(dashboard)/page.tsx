@@ -7,7 +7,9 @@ import {
   MagnifyingGlassIcon,
   Squares2X2Icon,
   ListBulletIcon,
+  StarIcon,
 } from "@heroicons/react/24/outline";
+import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import { BookmarkCard } from "@/components/BookmarkCard";
 import { BookmarkListItem } from "@/components/BookmarkListItem";
 import { BookmarkForm, BookmarkFormData } from "@/components/BookmarkForm";
@@ -31,6 +33,7 @@ export default function DashboardPage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [viewType, setViewType] = useState<"cards" | "list">("cards");
+  const [showStarredOnly, setShowStarredOnly] = useState(false);
 
   // Load view preference from localStorage
   useEffect(() => {
@@ -44,6 +47,22 @@ export default function DashboardPage() {
   function handleViewChange(view: "cards" | "list") {
     setViewType(view);
     localStorage.setItem("bookit-view-type", view);
+  }
+
+  async function handleStar(id: number) {
+    try {
+      const response = await fetch(`/api/bookmarks/${id}/star`, {
+        method: "POST",
+      });
+      if (response.ok) {
+        const updated = await response.json();
+        setBookmarks((prev) =>
+          prev.map((b) => (b.id === id ? { ...b, starred: updated.starred } : b))
+        );
+      }
+    } catch (error) {
+      console.error("Failed to star bookmark:", error);
+    }
   }
 
   // Enable keyboard shortcuts
@@ -82,7 +101,9 @@ export default function DashboardPage() {
     const matchesCategory =
       selectedCategory === null || b.categoryId === selectedCategory;
 
-    return matchesSearch && matchesCategory;
+    const matchesStarred = !showStarredOnly || b.starred;
+
+    return matchesSearch && matchesCategory && matchesStarred;
   });
 
   async function handleCreateOrUpdate(data: BookmarkFormData) {
@@ -194,9 +215,25 @@ export default function DashboardPage() {
         </div>
         <div className="flex gap-2 flex-wrap">
           <button
+            onClick={() => setShowStarredOnly(!showStarredOnly)}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
+              showStarredOnly
+                ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                : "bg-slate-800/50 text-slate-400 hover:text-amber-400 border border-transparent"
+            }`}
+            title={showStarredOnly ? "Show all bookmarks" : "Show favorites only"}
+          >
+            {showStarredOnly ? (
+              <StarSolidIcon className="w-4 h-4" />
+            ) : (
+              <StarIcon className="w-4 h-4" />
+            )}
+            Favorites
+          </button>
+          <button
             onClick={() => setSelectedCategory(null)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-              selectedCategory === null
+              selectedCategory === null && !showStarredOnly
                 ? "bg-indigo-600 text-white"
                 : "bg-slate-800/50 text-slate-400 hover:text-white"
             }`}
@@ -269,6 +306,7 @@ export default function DashboardPage() {
                 bookmark={bookmark}
                 onEdit={handleEdit}
                 onDelete={(id) => setDeleteId(id)}
+                onStar={handleStar}
                 index={index}
               />
             ))}
@@ -283,6 +321,7 @@ export default function DashboardPage() {
                 bookmark={bookmark}
                 onEdit={handleEdit}
                 onDelete={(id) => setDeleteId(id)}
+                onStar={handleStar}
                 index={index}
               />
             ))}

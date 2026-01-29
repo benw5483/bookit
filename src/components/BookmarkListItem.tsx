@@ -2,13 +2,18 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { CommandLineIcon } from "@heroicons/react/24/outline";
+import {
+  CommandLineIcon,
+  StarIcon as StarOutlineIcon,
+} from "@heroicons/react/24/outline";
+import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import type { Bookmark, Category } from "@/db/schema";
 
 interface BookmarkListItemProps {
   bookmark: Bookmark & { category: Category | null };
   onEdit: (bookmark: Bookmark & { category: Category | null }) => void;
   onDelete: (id: number) => void;
+  onStar: (id: number) => void;
   index: number;
 }
 
@@ -16,6 +21,7 @@ export function BookmarkListItem({
   bookmark,
   onEdit,
   onDelete,
+  onStar,
   index,
 }: BookmarkListItemProps) {
   const imageUrl = bookmark.customImage || bookmark.favicon;
@@ -25,9 +31,9 @@ export function BookmarkListItem({
     window.open(bookmark.url, "_blank", "noopener,noreferrer");
   }
 
-  function handleContextMenu(e: React.MouseEvent) {
-    e.preventDefault();
-    // Could add context menu later, for now just prevent default
+  function handleStar(e: React.MouseEvent) {
+    e.stopPropagation();
+    onStar(bookmark.id);
   }
 
   return (
@@ -37,13 +43,28 @@ export function BookmarkListItem({
       exit={{ opacity: 0 }}
       transition={{ delay: index * 0.02, duration: 0.15 }}
       onClick={handleOpen}
-      onContextMenu={handleContextMenu}
       onDoubleClick={(e) => {
         e.stopPropagation();
         onEdit(bookmark);
       }}
       className="group flex items-center gap-3 px-3 py-2 bg-slate-800/30 hover:bg-slate-800/60 border border-slate-700/30 hover:border-slate-600/50 rounded-lg cursor-pointer transition-all"
     >
+      {/* Star button */}
+      <button
+        onClick={handleStar}
+        className={`shrink-0 transition-all cursor-pointer ${
+          bookmark.starred
+            ? "text-amber-400 hover:text-amber-300"
+            : "text-slate-600 hover:text-amber-400 opacity-0 group-hover:opacity-100"
+        }`}
+      >
+        {bookmark.starred ? (
+          <StarSolidIcon className="w-4 h-4" />
+        ) : (
+          <StarOutlineIcon className="w-4 h-4" />
+        )}
+      </button>
+
       {/* Favicon */}
       <div className="w-5 h-5 flex items-center justify-center shrink-0">
         {imageUrl ? (

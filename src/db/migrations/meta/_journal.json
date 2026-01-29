@@ -8,6 +8,13 @@
       "when": 1769649227238,
       "tag": "0000_exotic_alex_power",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1769717618801,
+      "tag": "0001_flaky_victor_mancha",
+      "breakpoints": true
     }
   ]
 }

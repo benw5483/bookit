@@ -7,7 +7,9 @@ import {
   TrashIcon,
   ArrowTopRightOnSquareIcon,
   CommandLineIcon,
+  StarIcon as StarOutlineIcon,
 } from "@heroicons/react/24/outline";
+import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import type { Bookmark, Category } from "@/db/schema";
 import { cn } from "@/lib/utils";
 import { Tooltip } from "./ui/Tooltip";
@@ -17,6 +19,7 @@ interface BookmarkCardProps {
   bookmark: Bookmark & { category: Category | null };
   onEdit: (bookmark: Bookmark & { category: Category | null }) => void;
   onDelete: (id: number) => void;
+  onStar: (id: number) => void;
   index: number;
 }
 
@@ -24,6 +27,7 @@ export function BookmarkCard({
   bookmark,
   onEdit,
   onDelete,
+  onStar,
   index,
 }: BookmarkCardProps) {
   const imageUrl = bookmark.customImage || bookmark.favicon;
@@ -42,6 +46,11 @@ export function BookmarkCard({
   function handleDelete(e: React.MouseEvent) {
     e.stopPropagation();
     onDelete(bookmark.id);
+  }
+
+  function handleStar(e: React.MouseEvent) {
+    e.stopPropagation();
+    onStar(bookmark.id);
   }
 
   // Fallback gradient using category color or default
@@ -139,31 +148,50 @@ export function BookmarkCard({
             )}
           </div>
 
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Tooltip content="Open in new tab">
+          <div className="flex items-center gap-1">
+            <Tooltip content={bookmark.starred ? "Remove from favorites" : "Add to favorites"}>
               <button
-                onClick={handleOpen}
-                className="p-2 text-slate-300 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors cursor-pointer"
+                onClick={handleStar}
+                className={cn(
+                  "p-2 rounded-lg transition-all cursor-pointer",
+                  bookmark.starred
+                    ? "text-amber-400 hover:text-amber-300"
+                    : "text-slate-300 hover:text-amber-400 opacity-0 group-hover:opacity-100"
+                )}
               >
-                <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                {bookmark.starred ? (
+                  <StarSolidIcon className="w-4 h-4" />
+                ) : (
+                  <StarOutlineIcon className="w-4 h-4" />
+                )}
               </button>
             </Tooltip>
-            <Tooltip content="Edit bookmark">
-              <button
-                onClick={handleEdit}
-                className="p-2 text-slate-300 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors cursor-pointer"
-              >
-                <PencilIcon className="w-4 h-4" />
-              </button>
-            </Tooltip>
-            <Tooltip content="Delete bookmark">
-              <button
-                onClick={handleDelete}
-                className="p-2 text-slate-300 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
-              >
-                <TrashIcon className="w-4 h-4" />
-              </button>
-            </Tooltip>
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+              <Tooltip content="Open in new tab">
+                <button
+                  onClick={handleOpen}
+                  className="p-2 text-slate-300 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors cursor-pointer"
+                >
+                  <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                </button>
+              </Tooltip>
+              <Tooltip content="Edit bookmark">
+                <button
+                  onClick={handleEdit}
+                  className="p-2 text-slate-300 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors cursor-pointer"
+                >
+                  <PencilIcon className="w-4 h-4" />
+                </button>
+              </Tooltip>
+              <Tooltip content="Delete bookmark">
+                <button
+                  onClick={handleDelete}
+                  className="p-2 text-slate-300 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                >
+                  <TrashIcon className="w-4 h-4" />
+                </button>
+              </Tooltip>
+            </div>
           </div>
         </div>
       </div>

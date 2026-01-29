@@ -32,6 +32,7 @@ export const bookmarks = sqliteTable("bookmarks", {
     onDelete: "set null",
   }),
   keyboardShortcut: text("keyboard_shortcut"),
+  starred: integer("starred", { mode: "boolean" }).notNull().default(false),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()

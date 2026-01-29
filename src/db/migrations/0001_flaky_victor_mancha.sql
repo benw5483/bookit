@@ -1,0 +1,1 @@
+ALTER TABLE `bookmarks` ADD `starred` integer DEFAULT false NOT NULL;

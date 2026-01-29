@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import {
   CommandLineIcon,
+  PencilIcon,
   StarIcon as StarOutlineIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
@@ -34,6 +35,11 @@ export function BookmarkListItem({
   function handleStar(e: React.MouseEvent) {
     e.stopPropagation();
     onStar(bookmark.id);
+  }
+
+  function handleEdit(e: React.MouseEvent) {
+    e.stopPropagation();
+    onEdit(bookmark);
   }
 
   return (
@@ -89,6 +95,14 @@ export function BookmarkListItem({
         ) : (
           <StarOutlineIcon className="w-4 h-4" />
         )}
+      </button>
+
+      {/* Edit button */}
+      <button
+        onClick={handleEdit}
+        className="shrink-0 text-slate-600 hover:text-white opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+      >
+        <PencilIcon className="w-4 h-4" />
       </button>
 
       {/* Category indicator */}

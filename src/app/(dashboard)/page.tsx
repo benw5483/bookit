@@ -168,7 +168,11 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-3xl font-bold text-white">Bookmarks</h1>
           <p className="text-slate-400 mt-1">
-            {bookmarks.length} bookmark{bookmarks.length !== 1 && "s"}
+            {filteredBookmarks.length === bookmarks.length ? (
+              <>{bookmarks.length} bookmark{bookmarks.length !== 1 && "s"}</>
+            ) : (
+              <>{filteredBookmarks.length} of {bookmarks.length} bookmarks shown</>
+            )}
           </p>
         </div>
         <Button onClick={() => setIsFormOpen(true)}>

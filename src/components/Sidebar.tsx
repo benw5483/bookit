@@ -29,65 +29,61 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "bg-slate-800/50 backdrop-blur-xl border-r border-slate-700/50 flex flex-col h-screen sticky top-0 shrink-0 transition-all duration-300 ease-in-out overflow-hidden",
-        isOpen ? "w-64" : "w-16"
+        "bg-slate-800/50 backdrop-blur-xl border-r border-slate-700/50 flex flex-col h-screen sticky top-0 shrink-0 transition-all duration-300 ease-in-out",
+        isOpen ? "w-64" : "w-[72px]"
       )}
     >
-      <div className="p-4 border-b border-slate-700/50 flex items-center justify-between min-h-[72px]">
-        <Link
-          href="/"
-          className={cn(
-            "flex items-center gap-3 transition-opacity duration-200",
-            !isOpen && "opacity-0 pointer-events-none"
-          )}
-        >
-          <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25 shrink-0">
-            <BookmarkIcon className="w-5 h-5 text-white" />
+      {/* Header */}
+      <div className="border-b border-slate-700/50">
+        {isOpen ? (
+          <div className="p-4 flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                <BookmarkIcon className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-white">Bookit</span>
+            </Link>
+            <button
+              onClick={toggle}
+              className="p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors cursor-pointer"
+            >
+              <ChevronLeftIcon className="w-5 h-5" />
+            </button>
           </div>
-          <span className="text-xl font-bold text-white whitespace-nowrap">
-            Bookit
-          </span>
-        </Link>
-        {!isOpen && (
-          <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25 shrink-0 absolute left-3">
-            <BookmarkIcon className="w-5 h-5 text-white" />
+        ) : (
+          <div className="p-4 flex flex-col items-center gap-2">
+            <Link href="/">
+              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                <BookmarkIcon className="w-5 h-5 text-white" />
+              </div>
+            </Link>
+            <Tooltip content="Expand" position="right">
+              <button
+                onClick={toggle}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors cursor-pointer"
+              >
+                <ChevronRightIcon className="w-5 h-5" />
+              </button>
+            </Tooltip>
           </div>
         )}
-        <Tooltip content={isOpen ? "Collapse" : "Expand"} position="right">
-          <button
-            onClick={toggle}
-            className={cn(
-              "p-1.5 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors cursor-pointer shrink-0",
-              !isOpen && "absolute right-3"
-            )}
-          >
-            {isOpen ? (
-              <ChevronLeftIcon className="w-5 h-5" />
-            ) : (
-              <ChevronRightIcon className="w-5 h-5" />
-            )}
-          </button>
-        </Tooltip>
       </div>
 
-      <nav className="flex-1 p-2 space-y-1">
+      {/* Navigation */}
+      <nav className="flex-1 p-3 space-y-1">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
-          return (
-            <Tooltip
-              key={item.href}
-              content={item.label}
-              position="right"
-              disabled={isOpen}
-            >
+
+          if (isOpen) {
+            return (
               <Link
+                key={item.href}
                 href={item.href}
                 className={cn(
-                  "relative flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors",
+                  "relative flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
                   isActive
                     ? "text-indigo-400"
-                    : "text-slate-400 hover:text-white hover:bg-slate-700/50",
-                  !isOpen && "justify-center"
+                    : "text-slate-400 hover:text-white hover:bg-slate-700/50"
                 )}
               >
                 {isActive && (
@@ -101,44 +97,56 @@ export function Sidebar() {
                     }}
                   />
                 )}
-                <item.icon className="w-5 h-5 relative z-10 shrink-0" />
-                <span
-                  className={cn(
-                    "relative z-10 whitespace-nowrap transition-opacity duration-200",
-                    !isOpen && "opacity-0 w-0 overflow-hidden"
-                  )}
-                >
-                  {item.label}
-                </span>
+                <item.icon className="w-5 h-5 relative z-10" />
+                <span className="relative z-10">{item.label}</span>
+              </Link>
+            );
+          }
+
+          return (
+            <Tooltip key={item.href} content={item.label} position="right">
+              <Link
+                href={item.href}
+                className={cn(
+                  "relative flex items-center justify-center w-full h-12 rounded-lg text-sm font-medium transition-colors",
+                  isActive
+                    ? "text-indigo-400 bg-indigo-600/20 border border-indigo-500/30"
+                    : "text-slate-400 hover:text-white hover:bg-slate-700/50"
+                )}
+              >
+                <item.icon className="w-5 h-5" />
               </Link>
             </Tooltip>
           );
         })}
       </nav>
 
-      <div className="p-2 border-t border-slate-700/50">
-        <Tooltip content="Sign Out" position="right" disabled={isOpen}>
+      {/* Footer */}
+      <div className="p-3 border-t border-slate-700/50">
+        {isOpen ? (
           <button
             onClick={async () => {
               await signOut({ redirect: false });
               window.location.href = "/login";
             }}
-            className={cn(
-              "flex items-center gap-3 w-full px-3 py-3 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all cursor-pointer",
-              !isOpen && "justify-center"
-            )}
+            className="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all cursor-pointer"
           >
-            <ArrowRightOnRectangleIcon className="w-5 h-5 shrink-0" />
-            <span
-              className={cn(
-                "whitespace-nowrap transition-opacity duration-200",
-                !isOpen && "opacity-0 w-0 overflow-hidden"
-              )}
-            >
-              Sign Out
-            </span>
+            <ArrowRightOnRectangleIcon className="w-5 h-5" />
+            <span>Sign Out</span>
           </button>
-        </Tooltip>
+        ) : (
+          <Tooltip content="Sign Out" position="right">
+            <button
+              onClick={async () => {
+                await signOut({ redirect: false });
+                window.location.href = "/login";
+              }}
+              className="flex items-center justify-center w-full h-12 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 transition-all cursor-pointer"
+            >
+              <ArrowRightOnRectangleIcon className="w-5 h-5" />
+            </button>
+          </Tooltip>
+        )}
       </div>
     </aside>
   );

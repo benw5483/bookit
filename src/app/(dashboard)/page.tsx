@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   DndContext,
@@ -36,6 +37,9 @@ import type { Bookmark, Category } from "@/db/schema";
 type BookmarkWithCategory = Bookmark & { category: Category | null };
 
 export default function DashboardPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   const [bookmarks, setBookmarks] = useState<BookmarkWithCategory[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,6 +52,48 @@ export default function DashboardPage() {
   const [deleting, setDeleting] = useState(false);
   const [viewType, setViewType] = useState<"cards" | "list">("cards");
   const [showStarredOnly, setShowStarredOnly] = useState(false);
+  const [urlInitialized, setUrlInitialized] = useState(false);
+
+  // Update URL with current filter state
+  const updateUrl = useCallback((categoryId: number | null, favorites: boolean) => {
+    const params = new URLSearchParams();
+
+    if (favorites) {
+      params.set("favorites", "true");
+    } else if (categoryId !== null) {
+      // Find category name for URL
+      const category = categories.find(c => c.id === categoryId);
+      if (category) {
+        params.set("category", category.name);
+      }
+    }
+
+    const queryString = params.toString();
+    const newUrl = queryString ? `?${queryString}` : "/";
+    router.replace(newUrl, { scroll: false });
+  }, [categories, router]);
+
+  // Initialize filters from URL after categories are loaded
+  useEffect(() => {
+    if (categories.length === 0 || urlInitialized) return;
+
+    const favoritesParam = searchParams.get("favorites");
+    const categoryParam = searchParams.get("category");
+
+    if (favoritesParam === "true") {
+      setShowStarredOnly(true);
+      setSelectedCategory(null);
+    } else if (categoryParam) {
+      const category = categories.find(
+        c => c.name.toLowerCase() === categoryParam.toLowerCase()
+      );
+      if (category) {
+        setSelectedCategory(category.id);
+      }
+    }
+
+    setUrlInitialized(true);
+  }, [categories, searchParams, urlInitialized]);
 
   // Load view preference from localStorage
   useEffect(() => {
@@ -331,6 +377,7 @@ export default function DashboardPage() {
               if (newValue) {
                 setSelectedCategory(null);
               }
+              updateUrl(null, newValue);
             }}
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
               showStarredOnly
@@ -347,7 +394,11 @@ export default function DashboardPage() {
             Favorites
           </button>
           <button
-            onClick={() => setSelectedCategory(null)}
+            onClick={() => {
+              setSelectedCategory(null);
+              setShowStarredOnly(false);
+              updateUrl(null, false);
+            }}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
               selectedCategory === null && !showStarredOnly
                 ? "bg-indigo-600 text-white"
@@ -359,7 +410,11 @@ export default function DashboardPage() {
           {categories.map((category) => (
             <button
               key={category.id}
-              onClick={() => setSelectedCategory(category.id)}
+              onClick={() => {
+                setSelectedCategory(category.id);
+                setShowStarredOnly(false);
+                updateUrl(category.id, false);
+              }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                 selectedCategory === category.id
                   ? "text-white"

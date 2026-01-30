@@ -11,7 +11,8 @@
       "Bash(npx tsc:*)",
       "Bash(npm run db:migrate:*)",
       "Bash(npm run db:push:*)",
-      "Bash(sqlite3:*)"
+      "Bash(sqlite3:*)",
+      "Bash(npm run db:generate:*)"
     ]
   }
 }

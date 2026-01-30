@@ -1,7 +1,21 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { motion } from "framer-motion";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+} from "@dnd-kit/sortable";
 import {
   PlusIcon,
   MagnifyingGlassIcon,
@@ -10,8 +24,8 @@ import {
   StarIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
-import { BookmarkCard } from "@/components/BookmarkCard";
-import { BookmarkListItem } from "@/components/BookmarkListItem";
+import { SortableBookmarkCard } from "@/components/SortableBookmarkCard";
+import { SortableBookmarkListItem } from "@/components/SortableBookmarkListItem";
 import { BookmarkForm, BookmarkFormData } from "@/components/BookmarkForm";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -68,6 +82,18 @@ export default function DashboardPage() {
   // Enable keyboard shortcuts
   const shortcutState = useKeyboardShortcuts(bookmarks);
 
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   const fetchData = useCallback(async () => {
     try {
       const [bookmarksRes, categoriesRes] = await Promise.all([
@@ -95,20 +121,96 @@ export default function DashboardPage() {
     fetchData();
   }, [fetchData]);
 
-  const filteredBookmarks = bookmarks.filter((b) => {
-    const matchesSearch =
-      !search ||
-      b.name.toLowerCase().includes(search.toLowerCase()) ||
-      b.url.toLowerCase().includes(search.toLowerCase()) ||
-      b.description?.toLowerCase().includes(search.toLowerCase());
+  // Filter and sort bookmarks based on current view
+  const filteredBookmarks = useMemo(() => {
+    let filtered = bookmarks.filter((b) => {
+      const matchesSearch =
+        !search ||
+        b.name.toLowerCase().includes(search.toLowerCase()) ||
+        b.url.toLowerCase().includes(search.toLowerCase()) ||
+        b.description?.toLowerCase().includes(search.toLowerCase());
 
-    const matchesCategory =
-      selectedCategory === null || b.categoryId === selectedCategory;
+      const matchesCategory =
+        selectedCategory === null || b.categoryId === selectedCategory;
 
-    const matchesStarred = !showStarredOnly || b.starred;
+      const matchesStarred = !showStarredOnly || b.starred;
 
-    return matchesSearch && matchesCategory && matchesStarred;
-  });
+      return matchesSearch && matchesCategory && matchesStarred;
+    });
+
+    // Sort by the appropriate order based on view
+    if (selectedCategory !== null) {
+      // Within a category, use categorySortOrder
+      filtered = [...filtered].sort((a, b) => a.categorySortOrder - b.categorySortOrder);
+    } else {
+      // In "All" view, use global sortOrder
+      filtered = [...filtered].sort((a, b) => a.sortOrder - b.sortOrder);
+    }
+
+    return filtered;
+  }, [bookmarks, search, selectedCategory, showStarredOnly]);
+
+  // Check if drag is disabled (when searching or showing starred only)
+  const isDragDisabled = !!search || showStarredOnly;
+
+  // Handle drag end
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = filteredBookmarks.findIndex((b) => b.id === active.id);
+    const newIndex = filteredBookmarks.findIndex((b) => b.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    // Reorder the array
+    const newOrder = [...filteredBookmarks];
+    const [movedItem] = newOrder.splice(oldIndex, 1);
+    newOrder.splice(newIndex, 0, movedItem);
+
+    // Update local state immediately for responsiveness
+    const orderedIds = newOrder.map((b) => b.id);
+
+    // Update the bookmarks state with new order
+    setBookmarks((prev) => {
+      const updated = [...prev];
+      if (selectedCategory !== null) {
+        // Update categorySortOrder for items in this category
+        orderedIds.forEach((id, index) => {
+          const bookmark = updated.find((b) => b.id === id);
+          if (bookmark) {
+            bookmark.categorySortOrder = index;
+          }
+        });
+      } else {
+        // Update global sortOrder
+        orderedIds.forEach((id, index) => {
+          const bookmark = updated.find((b) => b.id === id);
+          if (bookmark) {
+            bookmark.sortOrder = index;
+          }
+        });
+      }
+      return updated;
+    });
+
+    // Persist to server
+    try {
+      await fetch("/api/bookmarks/reorder", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderedIds,
+          categoryId: selectedCategory,
+        }),
+      });
+    } catch (error) {
+      console.error("Failed to save order:", error);
+      // Refetch to restore correct order on error
+      fetchData();
+    }
+  }
 
   async function handleCreateOrUpdate(data: BookmarkFormData) {
     const method = editingBookmark ? "PUT" : "POST";
@@ -312,35 +414,55 @@ export default function DashboardPage() {
           )}
         </motion.div>
       ) : viewType === "cards" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <AnimatePresence>
-            {filteredBookmarks.map((bookmark, index) => (
-              <BookmarkCard
-                key={bookmark.id}
-                bookmark={bookmark}
-                onEdit={handleEdit}
-                onDelete={(id) => setDeleteId(id)}
-                onStar={handleStar}
-                index={index}
-              />
-            ))}
-          </AnimatePresence>
-        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={filteredBookmarks.map((b) => b.id)}
+            strategy={rectSortingStrategy}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredBookmarks.map((bookmark, index) => (
+                <SortableBookmarkCard
+                  key={bookmark.id}
+                  bookmark={bookmark}
+                  onEdit={handleEdit}
+                  onDelete={(id) => setDeleteId(id)}
+                  onStar={handleStar}
+                  index={index}
+                  isDragDisabled={isDragDisabled}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
-          <AnimatePresence>
-            {filteredBookmarks.map((bookmark, index) => (
-              <BookmarkListItem
-                key={bookmark.id}
-                bookmark={bookmark}
-                onEdit={handleEdit}
-                onDelete={(id) => setDeleteId(id)}
-                onStar={handleStar}
-                index={index}
-              />
-            ))}
-          </AnimatePresence>
-        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={filteredBookmarks.map((b) => b.id)}
+            strategy={rectSortingStrategy}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+              {filteredBookmarks.map((bookmark, index) => (
+                <SortableBookmarkListItem
+                  key={bookmark.id}
+                  bookmark={bookmark}
+                  onEdit={handleEdit}
+                  onDelete={(id) => setDeleteId(id)}
+                  onStar={handleStar}
+                  index={index}
+                  isDragDisabled={isDragDisabled}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       )}
 
       <BookmarkForm

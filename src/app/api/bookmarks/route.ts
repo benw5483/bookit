@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { bookmarks } from "@/db/schema";
-import { desc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 
 export async function GET() {
   const session = await auth();
@@ -12,7 +12,7 @@ export async function GET() {
 
   try {
     const allBookmarks = await db.query.bookmarks.findMany({
-      orderBy: [desc(bookmarks.createdAt)],
+      orderBy: [asc(bookmarks.sortOrder), desc(bookmarks.createdAt)],
       with: {
         category: true,
       },

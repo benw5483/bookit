@@ -65,9 +65,25 @@ export function BookmarkListItem({
         e.stopPropagation();
         onEdit(bookmark);
       }}
-      className="group flex items-center gap-3 px-3 py-2 bg-slate-800/30 hover:bg-slate-800/60 border rounded-lg cursor-pointer transition-all"
+      className="group relative flex items-center gap-3 px-3 py-2 bg-slate-800/30 hover:bg-slate-800/60 border rounded-lg cursor-pointer transition-all overflow-visible"
       style={{ borderColor: borderStyle }}
     >
+      {/* Star button - absolute positioned top right */}
+      <button
+        onClick={handleStar}
+        className={`absolute -top-1.5 -right-1.5 p-0.5 rounded-full bg-slate-900 transition-all cursor-pointer z-10 ${
+          bookmark.starred
+            ? "text-amber-400 hover:text-amber-300"
+            : "text-slate-600 hover:text-amber-400 opacity-0 group-hover:opacity-100"
+        }`}
+      >
+        {bookmark.starred ? (
+          <StarSolidIcon className="w-3.5 h-3.5" />
+        ) : (
+          <StarOutlineIcon className="w-3.5 h-3.5" />
+        )}
+      </button>
+
       {/* Favicon */}
       <div className="w-5 h-5 flex items-center justify-center shrink-0">
         {imageUrl ? (
@@ -94,22 +110,6 @@ export function BookmarkListItem({
         {bookmark.name}
       </span>
 
-      {/* Star button */}
-      <button
-        onClick={handleStar}
-        className={`shrink-0 transition-all cursor-pointer ${
-          bookmark.starred
-            ? "text-amber-400 hover:text-amber-300"
-            : "text-slate-600 hover:text-amber-400 opacity-0 group-hover:opacity-100"
-        }`}
-      >
-        {bookmark.starred ? (
-          <StarSolidIcon className="w-4 h-4" />
-        ) : (
-          <StarOutlineIcon className="w-4 h-4" />
-        )}
-      </button>
-
       {/* Edit button */}
       <button
         onClick={handleEdit}
@@ -128,7 +128,7 @@ export function BookmarkListItem({
 
       {/* Keyboard shortcut */}
       {bookmark.keyboardShortcut && (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-700/50 rounded text-xs font-mono text-slate-400 shrink-0">
+        <span className="relative z-20 inline-flex items-center gap-1 px-2 py-0.5 bg-slate-700/50 rounded text-xs font-mono text-slate-400 shrink-0">
           <CommandLineIcon className="w-3 h-3" />
           {bookmark.keyboardShortcut}
         </span>

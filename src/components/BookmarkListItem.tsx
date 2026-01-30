@@ -10,6 +10,7 @@ import {
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import type { Bookmark, Category } from "@/db/schema";
 import { useColorExtractor } from "@/hooks/useColorExtractor";
+import { Tooltip } from "./ui/Tooltip";
 
 interface BookmarkListItemProps {
   bookmark: Bookmark & { category: Category | null };
@@ -69,20 +70,22 @@ export function BookmarkListItem({
       style={{ borderColor: borderStyle }}
     >
       {/* Star button - absolute positioned top right */}
-      <button
-        onClick={handleStar}
-        className={`absolute -top-1.5 -right-1.5 p-0.5 rounded-full bg-slate-900 transition-all cursor-pointer z-10 ${
-          bookmark.starred
-            ? "text-amber-400 hover:text-amber-300"
-            : "text-slate-600 hover:text-amber-400 opacity-0 group-hover:opacity-100"
-        }`}
-      >
-        {bookmark.starred ? (
-          <StarSolidIcon className="w-3.5 h-3.5" />
-        ) : (
-          <StarOutlineIcon className="w-3.5 h-3.5" />
-        )}
-      </button>
+      <Tooltip content={bookmark.starred ? "Remove from favorites" : "Add to favorites"}>
+        <button
+          onClick={handleStar}
+          className={`absolute -top-1.5 -right-1.5 p-0.5 rounded-full bg-slate-900 transition-all cursor-pointer z-10 ${
+            bookmark.starred
+              ? "text-amber-400 hover:text-amber-300"
+              : "text-slate-600 hover:text-amber-400 opacity-0 group-hover:opacity-100"
+          }`}
+        >
+          {bookmark.starred ? (
+            <StarSolidIcon className="w-3.5 h-3.5" />
+          ) : (
+            <StarOutlineIcon className="w-3.5 h-3.5" />
+          )}
+        </button>
+      </Tooltip>
 
       {/* Favicon */}
       <div className="w-5 h-5 flex items-center justify-center shrink-0">
@@ -111,12 +114,14 @@ export function BookmarkListItem({
       </span>
 
       {/* Edit button */}
-      <button
-        onClick={handleEdit}
-        className="shrink-0 text-slate-600 hover:text-white opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
-      >
-        <PencilIcon className="w-4 h-4" />
-      </button>
+      <Tooltip content="Edit bookmark">
+        <button
+          onClick={handleEdit}
+          className="shrink-0 text-slate-600 hover:text-white opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+        >
+          <PencilIcon className="w-4 h-4" />
+        </button>
+      </Tooltip>
 
       {/* Category indicator */}
       {bookmark.category && (
@@ -128,10 +133,12 @@ export function BookmarkListItem({
 
       {/* Keyboard shortcut */}
       {bookmark.keyboardShortcut && (
-        <span className="relative z-20 inline-flex items-center gap-1 px-2 py-0.5 bg-slate-700/50 rounded text-xs font-mono text-slate-400 shrink-0">
-          <CommandLineIcon className="w-3 h-3" />
-          {bookmark.keyboardShortcut}
-        </span>
+        <Tooltip content={`Type "${bookmark.keyboardShortcut}" to open`}>
+          <span className="relative z-20 inline-flex items-center gap-1 px-2 py-0.5 bg-slate-700/50 rounded text-xs font-mono text-slate-400 shrink-0">
+            <CommandLineIcon className="w-3 h-3" />
+            {bookmark.keyboardShortcut}
+          </span>
+        </Tooltip>
       )}
     </motion.div>
   );

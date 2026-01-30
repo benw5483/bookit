@@ -29,7 +29,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "bg-slate-800/50 backdrop-blur-xl border-r border-slate-700/50 flex flex-col h-screen sticky top-0 shrink-0 transition-all duration-300 ease-in-out",
+        "hidden md:flex bg-slate-800/50 backdrop-blur-xl border-r border-slate-700/50 flex-col h-screen sticky top-0 shrink-0 transition-all duration-300 ease-in-out",
         isOpen ? "w-64" : "w-[72px]"
       )}
     >

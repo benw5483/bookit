@@ -21,6 +21,20 @@ function getDomainVariants(domain: string): string[] {
   return variants;
 }
 
+const FETCH_TIMEOUT = 10000; // 10 seconds
+
+async function fetchWithTimeout(url: string, options: RequestInit = {}): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    return response;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 async function tryFetchFavicon(
   domain: string
 ): Promise<{ data: ArrayBuffer; contentType: string } | null> {
@@ -29,7 +43,7 @@ async function tryFetchFavicon(
   console.log(`[Favicon API] Trying Google for ${domain}`);
 
   try {
-    const response = await fetch(googleFaviconUrl);
+    const response = await fetchWithTimeout(googleFaviconUrl);
     if (response.ok) {
       const data = await response.arrayBuffer();
       // Google returns a default globe icon (very small) when no favicon found
@@ -51,7 +65,7 @@ async function tryFetchFavicon(
   console.log(`[Favicon API] Trying direct fetch for ${domain}`);
   try {
     const directUrl = `https://${domain}/favicon.ico`;
-    const response = await fetch(directUrl);
+    const response = await fetchWithTimeout(directUrl);
     if (response.ok) {
       const data = await response.arrayBuffer();
       if (data.byteLength > 0) {
@@ -70,7 +84,7 @@ async function tryFetchFavicon(
   console.log(`[Favicon API] Trying apple-touch-icon for ${domain}`);
   try {
     const appleIconUrl = `https://${domain}/apple-touch-icon.png`;
-    const response = await fetch(appleIconUrl);
+    const response = await fetchWithTimeout(appleIconUrl);
     if (response.ok) {
       const data = await response.arrayBuffer();
       if (data.byteLength > 0) {

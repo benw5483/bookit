@@ -70,7 +70,7 @@ export function BookmarkListItem({
       style={{ borderColor: borderStyle }}
     >
       {/* Star button - absolute positioned top right */}
-      <Tooltip content={bookmark.starred ? "Remove from favorites" : "Add to favorites"}>
+      <Tooltip content={bookmark.starred ? "Remove from favorites" : "Add to favorites"} position="left">
         <button
           onClick={handleStar}
           className={`absolute -top-1.5 -right-1.5 p-0.5 rounded-full bg-slate-900 transition-all cursor-pointer z-10 ${

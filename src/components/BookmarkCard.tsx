@@ -84,7 +84,7 @@ export function BookmarkCard({
       }}
       whileHover={{ scale: 1.02, y: -4, transition: { duration: 0.2 } }}
       onClick={handleOpen}
-      className="group relative backdrop-blur-sm rounded-xl border-2 shadow-lg overflow-hidden cursor-pointer"
+      className="group relative backdrop-blur-sm rounded-xl border-2 shadow-lg overflow-hidden cursor-pointer h-full"
       style={{ background: backgroundStyle, borderColor: borderStyle }}
     >
       {/* Overlay for better text readability */}
@@ -95,6 +95,7 @@ export function BookmarkCard({
         content={
           bookmark.starred ? "Remove from favorites" : "Add to favorites"
         }
+        position="left"
       >
         <button
           onClick={handleStar}

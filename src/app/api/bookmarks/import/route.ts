@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { bookmarks, categories } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { fetchAndSaveFavicon } from "@/lib/favicon";
 
 interface ImportCategory {
   name: string;
@@ -106,11 +107,21 @@ export async function POST(req: NextRequest) {
             categoryMap.get(bookmark.categoryName.toLowerCase()) || null;
         }
 
+        // Fetch favicon if not provided
+        let favicon = bookmark.favicon || null;
+        if (!favicon && !bookmark.customImage) {
+          try {
+            favicon = await fetchAndSaveFavicon(bookmark.url);
+          } catch (error) {
+            console.error(`[Import] Failed to fetch favicon for ${bookmark.url}:`, error);
+          }
+        }
+
         await db.insert(bookmarks).values({
           name: bookmark.name,
           url: bookmark.url,
           description: bookmark.description || null,
-          favicon: bookmark.favicon || null,
+          favicon,
           customImage: bookmark.customImage || null,
           categoryId,
           keyboardShortcut: bookmark.keyboardShortcut || null,

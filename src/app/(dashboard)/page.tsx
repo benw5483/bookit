@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -36,7 +36,7 @@ import type { Bookmark, Category } from "@/db/schema";
 
 type BookmarkWithCategory = Bookmark & { category: Category | null };
 
-export default function DashboardPage() {
+function DashboardContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -548,5 +548,36 @@ export default function DashboardPage() {
         potentialMatches={shortcutState.potentialMatches}
       />
     </div>
+  );
+}
+
+// Loading fallback for Suspense
+function DashboardLoading() {
+  return (
+    <div className="p-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+        <div>
+          <div className="h-9 w-40 bg-slate-800/50 rounded-lg animate-pulse" />
+          <div className="h-5 w-24 bg-slate-800/50 rounded mt-2 animate-pulse" />
+        </div>
+        <div className="h-10 w-32 bg-slate-800/50 rounded-lg animate-pulse" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={i}
+            className="h-40 bg-slate-800/50 rounded-xl animate-pulse"
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<DashboardLoading />}>
+      <DashboardContent />
+    </Suspense>
   );
 }

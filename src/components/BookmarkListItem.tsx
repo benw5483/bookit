@@ -9,6 +9,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import type { Bookmark, Category } from "@/db/schema";
+import { useColorExtractor } from "@/hooks/useColorExtractor";
 
 interface BookmarkListItemProps {
   bookmark: Bookmark & { category: Category | null };
@@ -26,6 +27,14 @@ export function BookmarkListItem({
   index,
 }: BookmarkListItemProps) {
   const imageUrl = bookmark.customImage || bookmark.favicon;
+  const { borderColor } = useColorExtractor(imageUrl);
+
+  // Fallback border color using category color or default
+  const fallbackBorderColor = bookmark.category?.color
+    ? `${bookmark.category.color}50`
+    : "rgba(51, 65, 85, 0.3)";
+
+  const borderStyle = borderColor || fallbackBorderColor;
 
   function handleOpen(e: React.MouseEvent) {
     e.stopPropagation();
@@ -56,7 +65,8 @@ export function BookmarkListItem({
         e.stopPropagation();
         onEdit(bookmark);
       }}
-      className="group flex items-center gap-3 px-3 py-2 bg-slate-800/30 hover:bg-slate-800/60 border border-slate-700/30 hover:border-slate-600/50 rounded-lg cursor-pointer transition-all"
+      className="group flex items-center gap-3 px-3 py-2 bg-slate-800/30 hover:bg-slate-800/60 border rounded-lg cursor-pointer transition-all"
+      style={{ borderColor: borderStyle }}
     >
       {/* Favicon */}
       <div className="w-5 h-5 flex items-center justify-center shrink-0">

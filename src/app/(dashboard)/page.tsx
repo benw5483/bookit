@@ -55,23 +55,26 @@ function DashboardContent() {
   const [urlInitialized, setUrlInitialized] = useState(false);
 
   // Update URL with current filter state
-  const updateUrl = useCallback((categoryId: number | null, favorites: boolean) => {
-    const params = new URLSearchParams();
+  const updateUrl = useCallback(
+    (categoryId: number | null, favorites: boolean) => {
+      const params = new URLSearchParams();
 
-    if (favorites) {
-      params.set("favorites", "true");
-    } else if (categoryId !== null) {
-      // Find category name for URL
-      const category = categories.find(c => c.id === categoryId);
-      if (category) {
-        params.set("category", category.name);
+      if (favorites) {
+        params.set("favorites", "true");
+      } else if (categoryId !== null) {
+        // Find category name for URL
+        const category = categories.find((c) => c.id === categoryId);
+        if (category) {
+          params.set("category", category.name);
+        }
       }
-    }
 
-    const queryString = params.toString();
-    const newUrl = queryString ? `?${queryString}` : "/";
-    router.replace(newUrl, { scroll: false });
-  }, [categories, router]);
+      const queryString = params.toString();
+      const newUrl = queryString ? `?${queryString}` : "/";
+      router.replace(newUrl, { scroll: false });
+    },
+    [categories, router],
+  );
 
   // Initialize filters from URL after categories are loaded
   useEffect(() => {
@@ -85,7 +88,7 @@ function DashboardContent() {
       setSelectedCategory(null);
     } else if (categoryParam) {
       const category = categories.find(
-        c => c.name.toLowerCase() === categoryParam.toLowerCase()
+        (c) => c.name.toLowerCase() === categoryParam.toLowerCase(),
       );
       if (category) {
         setSelectedCategory(category.id);
@@ -117,7 +120,9 @@ function DashboardContent() {
       if (response.ok) {
         const updated = await response.json();
         setBookmarks((prev) =>
-          prev.map((b) => (b.id === id ? { ...b, starred: updated.starred } : b))
+          prev.map((b) =>
+            b.id === id ? { ...b, starred: updated.starred } : b,
+          ),
         );
       }
     } catch (error) {
@@ -137,7 +142,7 @@ function DashboardContent() {
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const fetchData = useCallback(async () => {
@@ -187,7 +192,9 @@ function DashboardContent() {
     // Sort by the appropriate order based on view
     if (selectedCategory !== null) {
       // Within a category, use categorySortOrder
-      filtered = [...filtered].sort((a, b) => a.categorySortOrder - b.categorySortOrder);
+      filtered = [...filtered].sort(
+        (a, b) => a.categorySortOrder - b.categorySortOrder,
+      );
     } else {
       // In "All" view, use global sortOrder
       filtered = [...filtered].sort((a, b) => a.sortOrder - b.sortOrder);
@@ -307,7 +314,7 @@ function DashboardContent() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -317,9 +324,13 @@ function DashboardContent() {
           <h1 className="text-3xl font-bold text-white">Bookmarks</h1>
           <p className="text-slate-400 mt-1">
             {filteredBookmarks.length === bookmarks.length ? (
-              <>{bookmarks.length} bookmark{bookmarks.length !== 1 && "s"}</>
+              <>
+                {bookmarks.length} bookmark{bookmarks.length !== 1 && "s"}
+              </>
             ) : (
-              <>{filteredBookmarks.length} of {bookmarks.length} bookmarks shown</>
+              <>
+                {filteredBookmarks.length} of {bookmarks.length} bookmarks shown
+              </>
             )}
           </p>
         </div>
@@ -333,41 +344,44 @@ function DashboardContent() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="flex flex-col sm:flex-row gap-4 mb-8"
+        className="flex flex-col gap-4 mb-8"
       >
-        <div className="relative flex-1">
-          <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search bookmarks..."
-            className="w-full pl-12 pr-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-          />
-        </div>
-        <div className="flex items-center gap-1 bg-slate-800/50 border border-slate-700/50 rounded-lg p-1">
-          <button
-            onClick={() => handleViewChange("cards")}
-            className={`p-2 rounded-md transition-all cursor-pointer ${
-              viewType === "cards"
-                ? "bg-indigo-600 text-white"
-                : "text-slate-400 hover:text-white hover:bg-slate-700/50"
-            }`}
-            title="Card view"
-          >
-            <Squares2X2Icon className="w-5 h-5" />
-          </button>
-          <button
-            onClick={() => handleViewChange("list")}
-            className={`p-2 rounded-md transition-all cursor-pointer ${
-              viewType === "list"
-                ? "bg-indigo-600 text-white"
-                : "text-slate-400 hover:text-white hover:bg-slate-700/50"
-            }`}
-            title="List view"
-          >
-            <ListBulletIcon className="w-5 h-5" />
-          </button>
+        {/* Search and view toggle - always on same row */}
+        <div className="flex gap-2 sm:gap-4">
+          <div className="relative flex-1">
+            <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search bookmarks..."
+              className="w-full pl-12 pr-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+            />
+          </div>
+          <div className="flex items-center gap-1 bg-slate-800/50 border border-slate-700/50 rounded-lg p-1 shrink-0">
+            <button
+              onClick={() => handleViewChange("cards")}
+              className={`p-2 rounded-md transition-all cursor-pointer ${
+                viewType === "cards"
+                  ? "bg-indigo-600 text-white"
+                  : "text-slate-400 hover:text-white hover:bg-slate-700/50"
+              }`}
+              title="Card view"
+            >
+              <Squares2X2Icon className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => handleViewChange("list")}
+              className={`p-2 rounded-md transition-all cursor-pointer ${
+                viewType === "list"
+                  ? "bg-indigo-600 text-white"
+                  : "text-slate-400 hover:text-white hover:bg-slate-700/50"
+              }`}
+              title="List view"
+            >
+              <ListBulletIcon className="w-5 h-5" />
+            </button>
+          </div>
         </div>
         <div className="flex gap-2 flex-wrap">
           <button
@@ -384,7 +398,9 @@ function DashboardContent() {
                 ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
                 : "bg-slate-800/50 text-slate-400 hover:text-amber-400 border border-transparent"
             }`}
-            title={showStarredOnly ? "Show all bookmarks" : "Show favorites only"}
+            title={
+              showStarredOnly ? "Show all bookmarks" : "Show favorites only"
+            }
           >
             {showStarredOnly ? (
               <StarSolidIcon className="w-4 h-4" />

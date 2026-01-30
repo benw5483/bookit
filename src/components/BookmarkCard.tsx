@@ -96,11 +96,12 @@ export function BookmarkCard({
           bookmark.starred ? "Remove from favorites" : "Add to favorites"
         }
         position="left"
+        className="absolute top-3 right-3 z-10"
       >
         <button
           onClick={handleStar}
           className={cn(
-            "absolute top-3 right-3 p-1.5 rounded-lg transition-all cursor-pointer z-10",
+            "p-1.5 rounded-lg transition-all cursor-pointer",
             bookmark.starred
               ? "text-amber-400 hover:text-amber-300"
               : "text-slate-400 hover:text-amber-400 opacity-0 group-hover:opacity-100",

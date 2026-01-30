@@ -10,6 +10,7 @@ interface TooltipProps {
   position?: "top" | "bottom" | "left" | "right";
   delay?: number;
   disabled?: boolean;
+  className?: string;
 }
 
 export function Tooltip({
@@ -18,6 +19,7 @@ export function Tooltip({
   position = "top",
   delay = 300,
   disabled = false,
+  className,
 }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [coords, setCoords] = useState({ x: 0, y: 0 });
@@ -121,6 +123,7 @@ export function Tooltip({
     <>
       <div
         ref={triggerRef}
+        className={className}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >

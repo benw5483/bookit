@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { bookmarks } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, ne, sql } from "drizzle-orm";
 
 export async function GET(
   _req: NextRequest,
@@ -47,9 +47,44 @@ export async function PUT(
 
   try {
     const { id } = await params;
+    const bookmarkId = parseInt(id);
     const body = await req.json();
     const { name, url, description, favicon, customImage, categoryId, keyboardShortcut, sortOrder } =
       body;
+
+    // Check for duplicate URL if URL is being updated (case-insensitive, exclude current bookmark)
+    if (url !== undefined) {
+      const existingBookmark = await db.query.bookmarks.findFirst({
+        where: and(
+          sql`LOWER(${bookmarks.url}) = LOWER(${url})`,
+          ne(bookmarks.id, bookmarkId)
+        ),
+      });
+
+      if (existingBookmark) {
+        return NextResponse.json(
+          { error: "A bookmark with this URL already exists" },
+          { status: 409 }
+        );
+      }
+    }
+
+    // Check for duplicate keyboard shortcut if being updated (exclude current bookmark)
+    if (keyboardShortcut) {
+      const existingShortcut = await db.query.bookmarks.findFirst({
+        where: and(
+          eq(bookmarks.keyboardShortcut, keyboardShortcut),
+          ne(bookmarks.id, bookmarkId)
+        ),
+      });
+
+      if (existingShortcut) {
+        return NextResponse.json(
+          { error: `Keyboard shortcut "${keyboardShortcut}" is already in use` },
+          { status: 409 }
+        );
+      }
+    }
 
     const updated = await db
       .update(bookmarks)
@@ -64,7 +99,7 @@ export async function PUT(
         ...(sortOrder !== undefined && { sortOrder }),
         updatedAt: new Date(),
       })
-      .where(eq(bookmarks.id, parseInt(id)))
+      .where(eq(bookmarks.id, bookmarkId))
       .returning();
 
     if (!updated.length) {

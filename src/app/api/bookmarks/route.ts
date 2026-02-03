@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { bookmarks } from "@/db/schema";
-import { asc, desc, eq } from "drizzle-orm";
+import { asc, desc, eq, sql } from "drizzle-orm";
 
 export async function GET() {
   const session = await auth();
@@ -44,6 +44,32 @@ export async function POST(req: NextRequest) {
         { error: "Name and URL are required" },
         { status: 400 }
       );
+    }
+
+    // Check for duplicate URL (case-insensitive)
+    const existingBookmark = await db.query.bookmarks.findFirst({
+      where: sql`LOWER(${bookmarks.url}) = LOWER(${url})`,
+    });
+
+    if (existingBookmark) {
+      return NextResponse.json(
+        { error: "A bookmark with this URL already exists" },
+        { status: 409 }
+      );
+    }
+
+    // Check for duplicate keyboard shortcut
+    if (keyboardShortcut) {
+      const existingShortcut = await db.query.bookmarks.findFirst({
+        where: eq(bookmarks.keyboardShortcut, keyboardShortcut),
+      });
+
+      if (existingShortcut) {
+        return NextResponse.json(
+          { error: `Keyboard shortcut "${keyboardShortcut}" is already in use` },
+          { status: 409 }
+        );
+      }
     }
 
     // Get the max sort order

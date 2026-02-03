@@ -277,7 +277,10 @@ function DashboardContent() {
       body: JSON.stringify(data),
     });
 
-    if (!response.ok) throw new Error("Failed to save bookmark");
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to save bookmark");
+    }
 
     await fetchData();
     setEditingBookmark(null);

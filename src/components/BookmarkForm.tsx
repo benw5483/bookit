@@ -35,6 +35,7 @@ export function BookmarkForm({
 }: BookmarkFormProps) {
   const [loading, setLoading] = useState(false);
   const [fetchingMetadata, setFetchingMetadata] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<BookmarkFormData>({
     name: "",
     url: "",
@@ -46,6 +47,7 @@ export function BookmarkForm({
   });
 
   useEffect(() => {
+    setError(null);
     if (bookmark) {
       setFormData({
         name: bookmark.name,
@@ -140,11 +142,17 @@ export function BookmarkForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+    setError(null);
 
     try {
       await onSubmit(formData);
       onClose();
     } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Failed to save bookmark");
+      }
       console.error("Failed to save bookmark:", error);
     } finally {
       setLoading(false);
@@ -159,6 +167,12 @@ export function BookmarkForm({
       size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-5">
+        {error && (
+          <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+            {error}
+          </div>
+        )}
+
         <Input
           id="url"
           label="URL"
